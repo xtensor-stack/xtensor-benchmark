@@ -1,0 +1,6 @@
+eigen
+libblitz
+xsimd
+xtensor
+xtensor-blas
+xtl
