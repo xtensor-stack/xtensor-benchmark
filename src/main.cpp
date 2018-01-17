@@ -10,7 +10,9 @@
 
 #include <benchmark/benchmark.h>
 
-#include "benchmark.hpp"
+#include "benchmark_1D.hpp"
+#include "benchmark_views.hpp"
+#include "benchmark_2D.hpp"
 #include "benchmark_allocators.hpp"
 
 #ifdef XTENSOR_USE_XSIMD

@@ -22,12 +22,16 @@
 #include "xtensor/xtensor.hpp"
 #include "xtensor/xarray.hpp"
 
+#include <pythonic/core.hpp>
+#include <pythonic/types/ndarray.hpp>
+#include <pythonic/numpy/random/rand.hpp>
+
 #ifndef EIGEN_VECTORIZE
 static_assert(false, "NOT VECTORIZING");
 #endif
 
 #define SZ 100
-#define RANGE 3, 100
+#define RANGE 3, 1000
 
 namespace xt
 {
@@ -43,8 +47,8 @@ namespace xt
 
 		while (state.KeepRunning())
 		{
-			tensor res({ (std::size_t) state.range(0), (std::size_t) state.range(0) });
-			xt::noalias(res) = a + b;
+			tensor res(a + b);
+			// xt::noalias(res) = a + b;
 			benchmark::DoNotOptimize(res.raw_data());
 		}
 	}
@@ -99,7 +103,7 @@ namespace xt
 		{
 			MatrixXd res(state.range(0), state.range(0));
 			res.noalias() = a + b;
-			benchmark::DoNotOptimize(&res(0, 0));
+			benchmark::DoNotOptimize(res.data());
 		}
 	}
 
@@ -108,10 +112,10 @@ namespace xt
 		using namespace blitz;
 		Array<double, 2> a(state.range(0), state.range(0));
 		Array<double, 2> b(state.range(0), state.range(0));
-		Array<double, 2> res(state.range(0), state.range(0));
 		while (state.KeepRunning())
 		{
-			res = (a + b);
+			Array<double, 2> res(a + b);
+			benchmark::DoNotOptimize(res.data());
 		}
 	}
 
@@ -120,16 +124,29 @@ namespace xt
 		using namespace arma;
 		mat a = randu<mat>(state.range(0), state.range(0));
 		mat b = randu<mat>(state.range(0), state.range(0));
-		mat res = randu<mat>(state.range(0), state.range(0));
 		while (state.KeepRunning())
 		{
-			res = a + b;
+			mat res = a + b;
+			benchmark::DoNotOptimize(res.memptr());
 		}
 	}
 
-	BENCHMARK(xtensor_test)->Range(RANGE);
+	void pythonic_test(benchmark::State& state)
+	{
+		auto x = pythonic::numpy::random::rand(100);
+		auto y = pythonic::numpy::random::rand(100);
+
+		while (state.KeepRunning())
+		{
+			pythonic::types::ndarray<double, 1> z = x + y;
+			// benchmark::DoNotOptimize(z.memptr());
+		}
+	}
+
 	BENCHMARK(xsimd_test)->Range(RANGE);
 	BENCHMARK(eigen_test)->Range(RANGE);
+	BENCHMARK(xtensor_test)->Range(RANGE);
 	BENCHMARK(blitz_test)->Range(RANGE);
 	BENCHMARK(arma_test)->Range(RANGE);
+	BENCHMARK(pythonic_test)->Range(RANGE);
 }
