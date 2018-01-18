@@ -23,6 +23,7 @@
 #include "xtensor/xarray.hpp"
 
 #include <pythonic/core.hpp>
+#include <pythonic/python/core.hpp>
 #include <pythonic/types/ndarray.hpp>
 #include <pythonic/numpy/random/rand.hpp>
 
