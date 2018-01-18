@@ -28,13 +28,6 @@ include_directories(${EIGEN3_INCLUDE_DIR} ${ARMADILLO_INCLUDE_DIRS} ${BLITZ_INCL
 include_directories(${xtl_INCLUDE_DIRS} ${xsimd_INCLUDE_DIRS} ${xtensor_INCLUDE_DIRS})
 include_directories(${Pythonic_INCLUDE_DIRS})
 
-# Add googlebenchmark directly to our build. This defines
-# the gtest and gtest_main targets.
-add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googlebenchmark-src
-                 ${CMAKE_CURRENT_BINARY_DIR}/googlebenchmark-build)
-
-set(GBENCHMARK_INCLUDE_DIRS "${googlebenchmark_SOURCE_DIR}/include")
-set(GBENCHMARK_LIBRARIES benchmark)
 
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g")
 include(CheckCXXCompilerFlag)
@@ -62,6 +55,15 @@ execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
 execute_process(COMMAND ${CMAKE_COMMAND} --build .
                 RESULT_VARIABLE result
                 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googlebenchmark-download )
+
+# Add googlebenchmark directly to our build. This defines
+# the gtest and gtest_main targets.
+add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googlebenchmark-src
+                 ${CMAKE_CURRENT_BINARY_DIR}/googlebenchmark-build)
+
+set(GBENCHMARK_INCLUDE_DIRS "${googlebenchmark_SOURCE_DIR}/include")
+set(GBENCHMARK_LIBRARIES benchmark)
+
 
 add_definitions(-DXTENSOR_USE_XSIMD)
 add_definitions(-DEIGEN_FAST_MATH)
