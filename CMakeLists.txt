@@ -22,19 +22,17 @@ find_package(Threads)
 find_package(Eigen3)
 find_package(Blitz)
 find_package(Armadillo)
-find_package(Pythonic)
+find_package(PythonLibs)
+find_package(NumPy)
+find_package(Pythran)
 
 include_directories(${EIGEN3_INCLUDE_DIR} ${ARMADILLO_INCLUDE_DIRS} ${BLITZ_INCLUDES})
 include_directories(${xtl_INCLUDE_DIRS} ${xsimd_INCLUDE_DIRS} ${xtensor_INCLUDE_DIRS})
-include_directories(${Pythonic_INCLUDE_DIRS})
+include_directories(${PYTHON_INCLUDE_DIRS})
+include_directories(${NUMPY_INCLUDE_DIRS})
+include_directories(${Pythran_INCLUDE_DIRS})
 
-# Add googlebenchmark directly to our build. This defines
-# the gtest and gtest_main targets.
-add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googlebenchmark-src
-                 ${CMAKE_CURRENT_BINARY_DIR}/googlebenchmark-build)
-
-set(GBENCHMARK_INCLUDE_DIRS "${googlebenchmark_SOURCE_DIR}/include")
-set(GBENCHMARK_LIBRARIES benchmark)
+link_directories(${Pythran_INCLUDE_DIRS})
 
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g")
 include(CheckCXXCompilerFlag)
@@ -45,6 +43,7 @@ message("FLAGS           : ${CMAKE_CXX_FLAGS}\n")
 message("Found eigen     : ${EIGEN3_INCLUDE_DIR}")
 message("Found Blitz     : ${BLITZ_INCLUDES} | ${BLITZ_LIBRARIES}")
 message("Found Armadillo : ${ARMADILLO_INCLUDE_DIRS} | ${ARMADILLO_LIBRARIES}")
+message("Found Pythran   : ${Pythran_INCLUDE_DIRS}")
 
 message("Found xtensor   : ${xtensor_INCLUDE_DIRS}")
 message("Found xsimd     : ${xsimd_INCLUDE_DIRS}\n\n")
@@ -63,10 +62,20 @@ execute_process(COMMAND ${CMAKE_COMMAND} --build .
                 RESULT_VARIABLE result
                 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googlebenchmark-download )
 
+# Add googlebenchmark directly to our build. This defines
+# the gtest and gtest_main targets.
+add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googlebenchmark-src
+                 ${CMAKE_CURRENT_BINARY_DIR}/googlebenchmark-build)
+
+set(GBENCHMARK_INCLUDE_DIRS "${googlebenchmark_SOURCE_DIR}/include")
+set(GBENCHMARK_LIBRARIES benchmark)
+
+
 add_definitions(-DXTENSOR_USE_XSIMD)
 add_definitions(-DEIGEN_FAST_MATH)
 add_definitions(-DNDEBUG)
 add_definitions(-DUSE_BOOST_SIMD)
+add_definitions(-DENABLE_PYTHON_MODULE)
 
 include_directories(${XTENSOR_INCLUDE_DIR} ${GBENCHMARK_INCLUDE_DIRS})
 
@@ -84,7 +93,8 @@ target_link_libraries(${XTENSOR_BENCHMARK_TARGET}
                       ${GBENCHMARK_LIBRARIES}
                       ${CMAKE_THREAD_LIBS_INIT}
                       ${BLITZ_LIBRARIES}
-                      ${ARMADILLO_LIBRARIES})
+                      ${ARMADILLO_LIBRARIES}
+                      ${PYTHON_LIBRARIES})
 
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/src/profile_snip.cpp)
   add_executable(profile_snip

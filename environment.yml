@@ -1,6 +1,18 @@
-eigen
-libblitz
-xsimd
-xtensor
-xtensor-blas
-xtl
+name: xtensor-benchmark
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - eigen
+  - libblitz
+  - armadillo
+  - xsimd
+  - xtensor
+  - xtensor-blas
+  - xtl
+  - cmake
+  - gmp
+  - numpy
+  - python
+  - pip:
+    - pythran
