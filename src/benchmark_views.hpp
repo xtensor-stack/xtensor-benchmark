@@ -12,7 +12,9 @@
 #include <Eigen/Core>
 // #include <unsupported/Eigen/MatrixFunctions>
 
+#ifdef HAS_BLITZ
 #include <blitz/array.h>
+#endif
 
 #include <armadillo>
 

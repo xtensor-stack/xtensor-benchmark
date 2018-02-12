@@ -12,7 +12,9 @@
 #include <Eigen/Core>
 // #include <unsupported/Eigen/MatrixFunctions>
 
+#ifdef HAS_BLITZ
 #include <blitz/array.h>
+#endif
 
 #include <armadillo>
 
@@ -111,6 +113,7 @@ namespace xt
             }
         }
 
+#ifdef HAS_BLITZ
         void blitz_test_1D(benchmark::State& state)
         {
             using namespace blitz;
@@ -122,6 +125,8 @@ namespace xt
                 benchmark::DoNotOptimize(res.data());
             }
         }
+        BENCHMARK(blitz_test_1D)->Range(RANGE);
+#endif
 
         void arma_test_1D(benchmark::State& state)
         {
@@ -143,15 +148,14 @@ namespace xt
             while (state.KeepRunning())
             {
                 pythonic::types::ndarray<double, 1> z(x + y);
-                // benchmark::DoNotOptimize(z.fbegin());
+                benchmark::DoNotOptimize(z.fbegin());
             }
         }
 
         BENCHMARK(eigen_test_1D)->Range(RANGE);
-        // BENCHMARK(xsimd_test_1D)->Range(RANGE);
+        BENCHMARK(xsimd_test_1D)->Range(RANGE);
         BENCHMARK(xtensor_test_1D)->Range(RANGE);
         BENCHMARK(pythonic_test_1D)->Range(RANGE);
-        // BENCHMARK(blitz_test_1D)->Range(RANGE);
-        // BENCHMARK(arma_test_1D)->Range(RANGE);
+        BENCHMARK(arma_test_1D)->Range(RANGE);
     }
 }

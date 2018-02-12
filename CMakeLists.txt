@@ -26,7 +26,7 @@ find_package(PythonLibs)
 find_package(NumPy)
 find_package(Pythran)
 
-include_directories(${EIGEN3_INCLUDE_DIR} ${ARMADILLO_INCLUDE_DIRS} ${BLITZ_INCLUDES})
+include_directories(${EIGEN3_INCLUDE_DIR} ${ARMADILLO_INCLUDE_DIRS})
 include_directories(${xtl_INCLUDE_DIRS} ${xsimd_INCLUDE_DIRS} ${xtensor_INCLUDE_DIRS})
 include_directories(${PYTHON_INCLUDE_DIRS})
 include_directories(${NUMPY_INCLUDE_DIRS})
@@ -70,6 +70,13 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googlebenchmark-src
 set(GBENCHMARK_INCLUDE_DIRS "${googlebenchmark_SOURCE_DIR}/include")
 set(GBENCHMARK_LIBRARIES benchmark)
 
+set(XTENSOR_BENCHMARK_TARGET xtensor_benchmark)
+
+if (Blitz_FOUND)
+  add_definitions(-DHAS_BLITZ)
+  include_directories(${BLITZ_INCLUDES})
+  target_link_libraries(${XTENSOR_BENCHMARK_TARGET} ${BLITZ_LIBRARIES})
+endif()
 
 add_definitions(-DXTENSOR_USE_XSIMD)
 add_definitions(-DEIGEN_FAST_MATH)
@@ -87,12 +94,10 @@ set(XTENSOR_BENCHMARK
     src/main.cpp
 )
 
-set(XTENSOR_BENCHMARK_TARGET xtensor_benchmark)
 add_executable(${XTENSOR_BENCHMARK_TARGET} ${XTENSOR_BENCHMARK} ${XTENSOR_HEADERS})
 target_link_libraries(${XTENSOR_BENCHMARK_TARGET}
                       ${GBENCHMARK_LIBRARIES}
                       ${CMAKE_THREAD_LIBS_INIT}
-                      ${BLITZ_LIBRARIES}
                       ${ARMADILLO_LIBRARIES}
                       ${PYTHON_LIBRARIES})
 

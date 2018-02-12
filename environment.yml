@@ -4,11 +4,9 @@ channels:
   - defaults
 dependencies:
   - eigen
-  - libblitz
   - armadillo
   - xsimd
   - xtensor
-  - xtensor-blas
   - xtl
   - cmake
   - gmp
