@@ -99,6 +99,6 @@ add_custom_target(xbenchmark
 add_custom_target(xpowerbench
     COMMAND echo "sudo needed to set cpu power governor to performance"
     COMMAND sudo cpupower frequency-set --governor performance
-    COMMAND xtensor_benchmark
+    COMMAND xtensor_benchmark --benchmark_out=bench.csv --benchmark_out_format=csv
     COMMAND sudo cpupower frequency-set --governor powersave
     DEPENDS ${XTENSOR_BENCHMARK_TARGET})
