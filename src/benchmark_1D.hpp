@@ -46,7 +46,7 @@ namespace xt
     namespace oned
     {
 
-        void xtensor_test_1D(benchmark::State& state)
+        void xtensor_1D(benchmark::State& state)
         {
             using namespace xt;
             using allocator = xsimd::aligned_allocator<double, 32>;
@@ -61,9 +61,9 @@ namespace xt
                 benchmark::DoNotOptimize(res.raw_data());
             }
         }
-        BENCHMARK(xtensor_test_1D)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+        BENCHMARK(xtensor_1D)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 
-        void xsimd_test_1D(benchmark::State& state)
+        void xsimd_1D(benchmark::State& state)
         {
             using allocator = xsimd::aligned_allocator<double, 32>;
             using bench_vector = xt::uvector<double, xsimd::aligned_allocator<double, 32>>;
@@ -105,10 +105,10 @@ namespace xt
                 benchmark::DoNotOptimize(res.data());
             }
         }
-        BENCHMARK(xsimd_test_1D)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+        BENCHMARK(xsimd_1D)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 
 #ifdef HAS_EIGEN
-        void eigen_test_1D(benchmark::State& state)
+        void eigen_1D(benchmark::State& state)
         {
             using namespace Eigen;
             VectorXd a = VectorXd::Random(state.range(0));
@@ -119,11 +119,11 @@ namespace xt
                 benchmark::DoNotOptimize(res.data());
             }
         }
-        BENCHMARK(eigen_test_1D)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+        BENCHMARK(eigen_1D)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 #endif
 
 #ifdef HAS_BLITZ
-        void blitz_test_1D(benchmark::State& state)
+        void blitz_1D(benchmark::State& state)
         {
             using namespace blitz;
             Array<double, 1> a(state.range(0));
@@ -134,11 +134,11 @@ namespace xt
                 benchmark::DoNotOptimize(res.data());
             }
         }
-        BENCHMARK(blitz_test_1D)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+        BENCHMARK(blitz_1D)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 #endif
 
 #ifdef HAS_ARMADILLO
-        void arma_test_1D(benchmark::State& state)
+        void arma_1D(benchmark::State& state)
         {
             using namespace arma;
             vec a = randu<vec>(state.range(0));
@@ -149,11 +149,11 @@ namespace xt
                 benchmark::DoNotOptimize(res.memptr());
             }
         }
-        BENCHMARK(arma_test_1D)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+        BENCHMARK(arma_1D)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 #endif
 
 #ifdef HAS_PYTHONIC
-        void pythonic_test_1D(benchmark::State &state)
+        void pythonic_1D(benchmark::State &state)
         {
             auto x = pythonic::numpy::random::rand(state.range(0));
             auto y = pythonic::numpy::random::rand(state.range(0));
@@ -164,7 +164,7 @@ namespace xt
                 benchmark::DoNotOptimize(z.fbegin());
             }
         }
-        BENCHMARK(pythonic_test_1D)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+        BENCHMARK(pythonic_1D)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 #endif
 
     }
