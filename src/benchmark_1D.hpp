@@ -8,33 +8,38 @@
 
 #include <benchmark/benchmark.h>
 
-#include <Eigen/Dense>
-#include <Eigen/Core>
-// #include <unsupported/Eigen/MatrixFunctions>
-
-#ifdef HAS_BLITZ
-#include <blitz/array.h>
-#endif
-
-#include <armadillo>
-
 #include "xtensor/xnoalias.hpp"
 #include "xtensor/xio.hpp"
 #include "xtensor/xrandom.hpp"
 #include "xtensor/xtensor.hpp"
 #include "xtensor/xarray.hpp"
 
+#ifdef HAS_EIGEN
+#include <Eigen/Dense>
+#include <Eigen/Core>
+#ifndef EIGEN_VECTORIZE
+static_assert(false, "NOT VECTORIZING");
+#endif
+#endif
+
+#ifdef HAS_BLITZ
+#include <blitz/array.h>
+#endif
+
+#ifdef HAS_ARMADILLO
+#include <armadillo>
+#endif
+
+#ifdef HAS_PYTHONIC
 #include <pythonic/core.hpp>
 #include <pythonic/python/core.hpp>
 #include <pythonic/types/ndarray.hpp>
 #include <pythonic/numpy/random/rand.hpp>
-
-#ifndef EIGEN_VECTORIZE
-static_assert(false, "NOT VECTORIZING");
 #endif
 
 #define SZ 100
 #define RANGE 3, 1000
+#define MULTIPLIER 8
 
 namespace xt
 {
@@ -53,10 +58,10 @@ namespace xt
             while (state.KeepRunning())
             {
                 tensor res(a + b);
-                // xt::noalias(res) = a + b;
-                // benchmark::DoNotOptimize(res.raw_data());
+                benchmark::DoNotOptimize(res.raw_data());
             }
         }
+        BENCHMARK(xtensor_test_1D)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 
         void xsimd_test_1D(benchmark::State& state)
         {
@@ -100,7 +105,9 @@ namespace xt
                 benchmark::DoNotOptimize(res.data());
             }
         }
+        BENCHMARK(xsimd_test_1D)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 
+#ifdef HAS_EIGEN
         void eigen_test_1D(benchmark::State& state)
         {
             using namespace Eigen;
@@ -112,6 +119,8 @@ namespace xt
                 benchmark::DoNotOptimize(res.data());
             }
         }
+        BENCHMARK(eigen_test_1D)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+#endif
 
 #ifdef HAS_BLITZ
         void blitz_test_1D(benchmark::State& state)
@@ -125,9 +134,10 @@ namespace xt
                 benchmark::DoNotOptimize(res.data());
             }
         }
-        BENCHMARK(blitz_test_1D)->Range(RANGE);
+        BENCHMARK(blitz_test_1D)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 #endif
 
+#ifdef HAS_ARMADILLO
         void arma_test_1D(benchmark::State& state)
         {
             using namespace arma;
@@ -139,7 +149,10 @@ namespace xt
                 benchmark::DoNotOptimize(res.memptr());
             }
         }
+        BENCHMARK(arma_test_1D)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+#endif
 
+#ifdef HAS_PYTHONIC
         void pythonic_test_1D(benchmark::State &state)
         {
             auto x = pythonic::numpy::random::rand(state.range(0));
@@ -151,11 +164,13 @@ namespace xt
                 benchmark::DoNotOptimize(z.fbegin());
             }
         }
+        BENCHMARK(pythonic_test_1D)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+#endif
 
-        BENCHMARK(eigen_test_1D)->Range(RANGE);
-        BENCHMARK(xsimd_test_1D)->Range(RANGE);
-        BENCHMARK(xtensor_test_1D)->Range(RANGE);
-        BENCHMARK(pythonic_test_1D)->Range(RANGE);
-        BENCHMARK(arma_test_1D)->Range(RANGE);
     }
 }
+
+#undef SZ
+#undef RANGE
+#undef MULTIPLIER
+

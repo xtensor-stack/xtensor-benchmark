@@ -8,33 +8,35 @@
 
 #include <benchmark/benchmark.h>
 
-#include <Eigen/Dense>
-#include <Eigen/Core>
-// #include <unsupported/Eigen/MatrixFunctions>
-
-#ifdef HAS_BLITZ
-#include <blitz/array.h>
-#endif
-
-#include <armadillo>
-
 #include "xtensor/xnoalias.hpp"
 #include "xtensor/xio.hpp"
 #include "xtensor/xrandom.hpp"
 #include "xtensor/xtensor.hpp"
 #include "xtensor/xarray.hpp"
 
+#ifdef HAS_EIGEN
+#include <Eigen/Dense>
+#include <Eigen/Core>
+#endif
+
+#ifdef HAS_BLITZ
+#include <blitz/array.h>
+#endif
+
+#ifdef HAS_ARMADILLO
+#include <armadillo>
+#endif
+
+#ifdef HAS_PYTHONIC
 #include <pythonic/core.hpp>
 #include <pythonic/python/core.hpp>
 #include <pythonic/types/ndarray.hpp>
 #include <pythonic/numpy/random/rand.hpp>
-
-#ifndef EIGEN_VECTORIZE
-static_assert(false, "NOT VECTORIZING");
 #endif
 
 #define SZ 100
 #define RANGE 3, 1000
+#define MULTIPLIER 8
 
 namespace xt
 {
@@ -54,6 +56,7 @@ namespace xt
 			benchmark::DoNotOptimize(res.raw_data());
 		}
 	}
+	BENCHMARK(xtensor_test)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 
 	void xsimd_test(benchmark::State& state)
 	{
@@ -95,7 +98,9 @@ namespace xt
             benchmark::DoNotOptimize(res.data());
 		}
 	}
+	BENCHMARK(xsimd_test)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 
+#ifdef HAS_EIGEN
 	void eigen_test(benchmark::State& state)
 	{
 		using namespace Eigen;
@@ -108,6 +113,8 @@ namespace xt
 			benchmark::DoNotOptimize(res.data());
 		}
 	}
+	BENCHMARK(eigen_test)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+#endif
 
 #ifdef HAS_BLITZ
 	void blitz_test(benchmark::State& state)
@@ -121,9 +128,10 @@ namespace xt
 			benchmark::DoNotOptimize(res.data());
 		}
 	}
-	BENCHMARK(blitz_test)->Range(RANGE);
+	BENCHMARK(blitz_test)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 #endif
 
+#ifdef HAS_ARMA
 	void arma_test(benchmark::State& state)
 	{
 		using namespace arma;
@@ -135,7 +143,10 @@ namespace xt
 			benchmark::DoNotOptimize(res.memptr());
 		}
 	}
+	BENCHMARK(arma_test)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+#endif
 
+#ifdef HAS_PYTHONIC
 	void pythonic_test(benchmark::State& state)
 	{
 		auto x = pythonic::numpy::random::rand(100);
@@ -147,10 +158,12 @@ namespace xt
 			benchmark::DoNotOptimize(z.fbegin());
 		}
 	}
+	BENCHMARK(pythonic_test)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+#endif
 
-	BENCHMARK(xsimd_test)->Range(RANGE);
-	BENCHMARK(eigen_test)->Range(RANGE);
-	BENCHMARK(xtensor_test)->Range(RANGE);
-	BENCHMARK(arma_test)->Range(RANGE);
-	BENCHMARK(pythonic_test)->Range(RANGE);
 }
+
+#undef SZ
+#undef RANGE
+#undef MULTIPLIER
+
