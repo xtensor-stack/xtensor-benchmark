@@ -5,10 +5,24 @@ import os
 absdir = os.path.dirname(os.path.realpath(__file__))
 
 CONDA_PREFIX = None
+XTENSOR_VERSION = [0, 0, 0]
 
 def call(arguments):
     print(arguments)
     os.system(" ".join(arguments))
+
+def parse_version():
+    global XTENSOR_VERSION
+    os.chdir(absdir + '/checkouts/xtensor')
+    with open(absdir + '/checkouts/xtensor/include/xtensor/xtensor_config.hpp') as f:
+        for line in f.readlines():
+            if line.startswith("#define XTENSOR_VERSION_MAJOR"):
+                XTENSOR_VERSION[0] = int(line.split()[-1])
+            if line.startswith("#define XTENSOR_VERSION_MINOR"):
+                XTENSOR_VERSION[1] = int(line.split()[-1])
+            if line.startswith("#define XTENSOR_VERSION_PATCH"):
+                XTENSOR_VERSION[2] = int(line.split()[-1])
+    print(f"Testing against: {XTENSOR_VERSION}")
 
 def init():
     global CONDA_PREFIX
@@ -28,6 +42,10 @@ def install_xtensor_version(version):
     except:
         os.chdir(absdir + '/checkouts/xtensor')
     call(['git', 'checkout', version])
+
+    parse_version()
+    version_string = ".".join([str(el) for el in XTENSOR_VERSION])
+    call(['conda', 'install', f'xtensor=={version_string}', '-c conda-forge', '-y'])
 
     try:
         os.mkdir(absdir + '/checkouts/xtensor/build')

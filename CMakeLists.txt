@@ -75,8 +75,8 @@ find_package(Threads)
 
 target_compile_definitions(${XTENSOR_BENCHMARK_TARGET} PRIVATE XTENSOR_USE_XSIMD=1 NDEBUG=1)
 target_include_directories(${XTENSOR_BENCHMARK_TARGET} PRIVATE ${GBENCHMARK_INCLUDE_DIRS})
+target_include_directories(${XTENSOR_BENCHMARK_TARGET} PRIVATE ${xtensor_INCLUDE_DIRS} ${xtl_INCLUDE_DIRS})
 target_link_libraries(${XTENSOR_BENCHMARK_TARGET}
-                      xtensor 
                       ${GBENCHMARK_LIBRARIES}
                       ${CMAKE_THREAD_LIBS_INIT})
 
