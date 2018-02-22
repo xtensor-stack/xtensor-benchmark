@@ -8,21 +8,26 @@
 
 #include <benchmark/benchmark.h>
 
-#include <Eigen/Dense>
-#include <Eigen/Core>
-
-#include <armadillo>
-
 #include "xsimd/xsimd.hpp"
 #include "xtensor/xtensor.hpp"
 #include "xtensor/xarray.hpp"
 
+#ifdef HAS_EIGEN
+#include <Eigen/Dense>
+#include <Eigen/Core>
+#endif
+
+#ifdef HAS_ARMADILLO
+#include <armadillo>
+#endif
+
 #define SZ 100
 #define RANGE 4, 1000
+#define MULTIPLIER 8
 
 namespace xt
 {
-    void eigen_alloc(benchmark::State& state)
+/*    void eigen_alloc(benchmark::State& state)
     {
         using namespace Eigen;
         while (state.KeepRunning())
@@ -181,5 +186,10 @@ namespace xt
     // BENCHMARK(arma_alloc)->Range(RANGE);
 
     // BENCHMARK_TEMPLATE(posix_alloc, 16)->Range(RANGE);
-    // BENCHMARK_TEMPLATE(posix_alloc, 32)->Range(RANGE);
+    // BENCHMARK_TEMPLATE(posix_alloc, 32)->Range(RANGE);*/
 }
+
+#undef SZ
+#undef RANGE
+#undef MULTIPLIER
+

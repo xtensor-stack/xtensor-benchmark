@@ -8,16 +8,6 @@
 
 #include <benchmark/benchmark.h>
 
-#include <Eigen/Dense>
-#include <Eigen/Core>
-// #include <unsupported/Eigen/MatrixFunctions>
-
-#ifdef HAS_BLITZ
-#include <blitz/array.h>
-#endif
-
-#include <armadillo>
-
 #include "xtensor/xnoalias.hpp"
 #include "xtensor/xio.hpp"
 #include "xtensor/xrandom.hpp"
@@ -27,18 +17,44 @@
 #include "xtensor/xview.hpp"
 #include "xtensor/xadapt.hpp"
 
-    // #include <pythonic/core.hpp>
-    // #include <pythonic/types/ndarray.hpp>
-    // #include <pythonic/numpy/random/rand.hpp>
+#ifdef HAS_EIGEN
+#include <Eigen/Dense>
+#include <Eigen/Core>
+#endif
 
-#ifndef EIGEN_VECTORIZE
-static_assert(false, "NOT VECTORIZING");
+#ifdef HAS_BLITZ
+#include <blitz/array.h>
+#endif
+
+#ifdef HAS_ARMADILLO
+#include <armadillo>
 #endif
 
 #define RANGE 128, 128
+#define MULTIPLIER 8
 
 namespace xt
 {
+	void xtensor_view(benchmark::State& state)
+	{
+		using namespace xt;
+		using allocator = xsimd::aligned_allocator<double, 32>;
+		using tensor = xtensor_container<xt::uvector<double, allocator>, 2, layout_type::row_major>;
+
+		tensor a = random::rand<double>({state.range(0), state.range(0)});
+		tensor b = random::rand<double>({state.range(0), state.range(0)});
+
+        auto av = xt::view(a, range(0, 5), range(0, 5));
+        auto bv = xt::view(b, range(0, 5), range(0, 5));
+
+		while (state.KeepRunning())
+		{
+			tensor res(av + bv);
+			benchmark::DoNotOptimize(res.raw_data());
+		}
+	}
+	BENCHMARK(xtensor_view)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+
 	void xtensor_dynamicview(benchmark::State& state)
 	{
 		using namespace xt;
@@ -59,26 +75,9 @@ namespace xt
 			benchmark::DoNotOptimize(res.raw_data());
 		}
 	}
+	BENCHMARK(xtensor_dynamicview)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 
-	void xtensor_view(benchmark::State& state)
-	{
-		using namespace xt;
-		using allocator = xsimd::aligned_allocator<double, 32>;
-		using tensor = xtensor_container<xt::uvector<double, allocator>, 2, layout_type::row_major>;
-
-		tensor a = random::rand<double>({state.range(0), state.range(0)});
-		tensor b = random::rand<double>({state.range(0), state.range(0)});
-
-        auto av = xt::view(a, range(0, 5), range(0, 5));
-        auto bv = xt::view(b, range(0, 5), range(0, 5));
-
-		while (state.KeepRunning())
-		{
-			tensor res(av + bv);
-			benchmark::DoNotOptimize(res.raw_data());
-		}
-	}
-
+#ifdef HAS_EIGEN
 	void eigen_view(benchmark::State& state)
 	{
 		using namespace Eigen;
@@ -95,6 +94,7 @@ namespace xt
 			benchmark::DoNotOptimize(res.data());
 		}
 	}
+	BENCHMARK(eigen_view)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 
 	void eigen_map(benchmark::State& state)
 	{
@@ -111,6 +111,8 @@ namespace xt
 			benchmark::DoNotOptimize(res.data());
 		}
 	}
+	BENCHMARK(eigen_map)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+#endif
 
 	void xtensor_stride_2(benchmark::State& state)
 	{
@@ -132,6 +134,7 @@ namespace xt
 			benchmark::DoNotOptimize(res.data());
 		}
 	}
+	BENCHMARK(xtensor_stride_2)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 
 	void xtensor_max_speed(benchmark::State& state)
 	{
@@ -148,6 +151,7 @@ namespace xt
 			benchmark::DoNotOptimize(res.data());
 		}
 	}
+	BENCHMARK(xtensor_max_speed)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 
 	void xtensor_adapt_view(benchmark::State& state)
 	{
@@ -169,6 +173,7 @@ namespace xt
 			benchmark::DoNotOptimize(res.data());
 		}
 	}
+	BENCHMARK(xtensor_adapt_view)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 
 	void xtensor_hand_loop(benchmark::State& state)
 	{
@@ -191,13 +196,10 @@ namespace xt
 			benchmark::DoNotOptimize(res.data());
 		}
 	}
+	BENCHMARK(xtensor_hand_loop)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 
-	BENCHMARK(xtensor_view)->Range(RANGE);
-	BENCHMARK(xtensor_dynamicview)->Range(RANGE);
-	BENCHMARK(eigen_view)->Range(RANGE);
-	BENCHMARK(eigen_map)->Range(RANGE);
-	BENCHMARK(xtensor_stride_2)->Range(RANGE);
-	BENCHMARK(xtensor_max_speed)->Range(RANGE);
-	BENCHMARK(xtensor_adapt_view)->Range(RANGE);
-	BENCHMARK(xtensor_hand_loop)->Range(RANGE);
 }
+
+#undef RANGE
+#undef MULTIPLIER
+

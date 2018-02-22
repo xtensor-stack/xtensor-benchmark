@@ -8,38 +8,40 @@
 
 #include <benchmark/benchmark.h>
 
-#include <Eigen/Dense>
-#include <Eigen/Core>
-// #include <unsupported/Eigen/MatrixFunctions>
-
-#ifdef HAS_BLITZ
-#include <blitz/array.h>
-#endif
-
-#include <armadillo>
-
 #include "xtensor/xnoalias.hpp"
 #include "xtensor/xio.hpp"
 #include "xtensor/xrandom.hpp"
 #include "xtensor/xtensor.hpp"
 #include "xtensor/xarray.hpp"
 
+#ifdef HAS_EIGEN
+#include <Eigen/Dense>
+#include <Eigen/Core>
+#endif
+
+#ifdef HAS_BLITZ
+#include <blitz/array.h>
+#endif
+
+#ifdef HAS_ARMADILLO
+#include <armadillo>
+#endif
+
+#ifdef HAS_PYTHONIC
 #include <pythonic/core.hpp>
 #include <pythonic/python/core.hpp>
 #include <pythonic/types/ndarray.hpp>
 #include <pythonic/numpy/random/rand.hpp>
-
-#ifndef EIGEN_VECTORIZE
-static_assert(false, "NOT VECTORIZING");
 #endif
 
 #define SZ 100
 #define RANGE 3, 1000
+#define MULTIPLIER 8
 
 namespace xt
 {
 
-	void xtensor_test(benchmark::State& state)
+	void xtensor_2D(benchmark::State& state)
 	{
 		using namespace xt;
 		using allocator = xsimd::aligned_allocator<double, 32>;
@@ -54,12 +56,13 @@ namespace xt
 			benchmark::DoNotOptimize(res.raw_data());
 		}
 	}
+	BENCHMARK(xtensor_2D)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 
-	void xsimd_test(benchmark::State& state)
+	void xsimd_2D(benchmark::State& state)
 	{
 		using allocator = xsimd::aligned_allocator<double, 32>;
 		using bench_vector = xt::uvector<double, xsimd::aligned_allocator<double, 32>>;
-		using batch = xsimd::batch<double, 4>;
+		using batch = xsimd::simd_type<double>;
 		using namespace xt;
 		using namespace xsimd;
 
@@ -95,8 +98,10 @@ namespace xt
             benchmark::DoNotOptimize(res.data());
 		}
 	}
+	BENCHMARK(xsimd_2D)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 
-	void eigen_test(benchmark::State& state)
+#ifdef HAS_EIGEN
+	void eigen_2D(benchmark::State& state)
 	{
 		using namespace Eigen;
 		MatrixXd a = MatrixXd::Random(state.range(0), state.range(0));
@@ -108,9 +113,11 @@ namespace xt
 			benchmark::DoNotOptimize(res.data());
 		}
 	}
+	BENCHMARK(eigen_2D)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+#endif
 
 #ifdef HAS_BLITZ
-	void blitz_test(benchmark::State& state)
+	void blitz_2D(benchmark::State& state)
 	{
 		using namespace blitz;
 		Array<double, 2> a(state.range(0), state.range(0));
@@ -121,10 +128,11 @@ namespace xt
 			benchmark::DoNotOptimize(res.data());
 		}
 	}
-	BENCHMARK(blitz_test)->Range(RANGE);
+	BENCHMARK(blitz_2D)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 #endif
 
-	void arma_test(benchmark::State& state)
+#ifdef HAS_ARMADILLO
+	void arma_2D(benchmark::State& state)
 	{
 		using namespace arma;
 		mat a = randu<mat>(state.range(0), state.range(0));
@@ -135,8 +143,11 @@ namespace xt
 			benchmark::DoNotOptimize(res.memptr());
 		}
 	}
+	BENCHMARK(arma_2D)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+#endif
 
-	void pythonic_test(benchmark::State& state)
+#ifdef HAS_PYTHONIC
+	void pythonic_2D(benchmark::State& state)
 	{
 		auto x = pythonic::numpy::random::rand(100);
 		auto y = pythonic::numpy::random::rand(100);
@@ -147,10 +158,12 @@ namespace xt
 			benchmark::DoNotOptimize(z.fbegin());
 		}
 	}
+	BENCHMARK(pythonic_2D)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+#endif
 
-	BENCHMARK(xsimd_test)->Range(RANGE);
-	BENCHMARK(eigen_test)->Range(RANGE);
-	BENCHMARK(xtensor_test)->Range(RANGE);
-	BENCHMARK(arma_test)->Range(RANGE);
-	BENCHMARK(pythonic_test)->Range(RANGE);
 }
+
+#undef SZ
+#undef RANGE
+#undef MULTIPLIER
+
