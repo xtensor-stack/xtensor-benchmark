@@ -62,7 +62,7 @@ namespace xt
 	{
 		using allocator = xsimd::aligned_allocator<double, 32>;
 		using bench_vector = xt::uvector<double, xsimd::aligned_allocator<double, 32>>;
-		using batch = xsimd::batch<double, 4>;
+		using batch = xsimd::simd_type<double>;
 		using namespace xt;
 		using namespace xsimd;
 
