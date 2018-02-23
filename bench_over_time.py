@@ -1,6 +1,7 @@
 import subprocess as sp
 # import tinydb
 import os
+import shutil
 
 absdir = os.path.dirname(os.path.realpath(__file__))
 
@@ -30,6 +31,10 @@ def init():
         call(['conda', 'env', 'create'])
     except:
         pass
+    try:
+        shutil.rmtree(absdir + '/stats')
+    except:
+        pass
     call(['source', 'activate', 'xtensor-benchmark'])
     CONDA_PREFIX = os.environ['CONDA_PREFIX']
     print(f"CONDA PREFIX SET TO: {CONDA_PREFIX}")
@@ -37,10 +42,11 @@ def init():
 def install_xtensor_version(version):
     try:
         os.mkdir(absdir + '/checkouts')
-        os.chdir(absdir + '/checkouts')
         call(['git', 'clone', 'https://github.com/QuantStack/xtensor'])
     except:
         os.chdir(absdir + '/checkouts/xtensor')
+        call(['git', 'checkout', 'master'])
+        call(['git', 'pull'])
     call(['git', 'checkout', version])
 
     parse_version()
@@ -56,16 +62,26 @@ def install_xtensor_version(version):
     call(['cmake', '..', '-DCMAKE_INSTALL_LIBDIR=lib', f'-DCMAKE_INSTALL_PREFIX={CONDA_PREFIX}'])
     call(['make', 'install'])
 
-def build_and_bench():
+def build_and_bench(version):
+    try:
+        os.mkdir(absdir + '/build')
+    except:
+        pass
     os.chdir(absdir + '/build')
-    call(['make', 'xbenchmark'])
+    try:
+        os.mkdir(absdir + '/stats')
+    except:
+        pass
+    call(['cmake', '..', '-DBENCHMARK_EIGEN=ON'])
+    call(['make', 'xpowerbench'])
+    os.rename(absdir + '/build/bench.csv', absdir + f'/stats/{version}.csv')
 
 def run():
     init()
-    versions = ['master', '0.14.0']
+    versions = ['master', '0.15.4', '0.14.0']
     for v in versions:
         install_xtensor_version(v)
-        build_and_bench()
+        build_and_bench(v)
 
 if __name__ == '__main__':
     run()

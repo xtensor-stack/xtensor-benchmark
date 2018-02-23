@@ -154,7 +154,7 @@ if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/src/profile_snip.cpp)
 endif()
 
 add_custom_target(xbenchmark
-    COMMAND xtensor_benchmark
+    COMMAND xtensor_benchmark --benchmark_out=bench.csv --benchmark_out_format=csv
     DEPENDS ${XTENSOR_BENCHMARK_TARGET})
 
 add_custom_target(xpowerbench
