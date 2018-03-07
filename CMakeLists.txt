@@ -61,6 +61,7 @@ set(XTENSOR_BENCHMARK
     src/benchmark_broadcasting.hpp
     src/benchmark_views.hpp
     src/benchmark_allocators.hpp
+    src/benchmark_fixed.hpp
     src/main.cpp
 )
 

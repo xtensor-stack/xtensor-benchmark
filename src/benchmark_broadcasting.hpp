@@ -62,6 +62,6 @@ namespace xt
 
 }
 
-#undef SZ 100
-#undef RANGE 3, 64
-#undef MULTIPLIER 8
+#undef SZ
+#undef RANGE
+#undef MULTIPLIER
