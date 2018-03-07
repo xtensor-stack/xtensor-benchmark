@@ -50,7 +50,7 @@ namespace xt
 		tensor a = random::rand<double>({state.range(0), state.range(0)});
 		tensor b = random::rand<double>({state.range(0), state.range(0)});
 
-		while (state.KeepRunning())
+		for (auto _ : state)
 		{
 			tensor res(a + b);
 			benchmark::DoNotOptimize(res.raw_data());
@@ -73,7 +73,7 @@ namespace xt
 
         std::size_t sz = state.range(0) * state.range(0);
 
-		while (state.KeepRunning())
+		for (auto _ : state)
 		{
 	        std::size_t align_begin = is_aligned ? 0 : xsimd::get_alignment_offset(a.data(), s, batch::size);
 	        std::size_t align_end = align_begin + ((s - align_begin) & ~(batch::size - 1));
@@ -106,7 +106,7 @@ namespace xt
 		using namespace Eigen;
 		MatrixXd a = MatrixXd::Random(state.range(0), state.range(0));
 		MatrixXd b = MatrixXd::Random(state.range(0), state.range(0));
-		while (state.KeepRunning())
+		for (auto _ : state)
 		{
 			MatrixXd res(state.range(0), state.range(0));
 			res.noalias() = a + b;
@@ -122,7 +122,7 @@ namespace xt
 		using namespace blitz;
 		Array<double, 2> a(state.range(0), state.range(0));
 		Array<double, 2> b(state.range(0), state.range(0));
-		while (state.KeepRunning())
+		for (auto _ : state)
 		{
 			Array<double, 2> res(a + b);
 			benchmark::DoNotOptimize(res.data());
@@ -137,7 +137,7 @@ namespace xt
 		using namespace arma;
 		mat a = randu<mat>(state.range(0), state.range(0));
 		mat b = randu<mat>(state.range(0), state.range(0));
-		while (state.KeepRunning())
+		for (auto _ : state)
 		{
 			mat res = a + b;
 			benchmark::DoNotOptimize(res.memptr());
@@ -149,12 +149,12 @@ namespace xt
 #ifdef HAS_PYTHONIC
 	void pythonic_2D(benchmark::State& state)
 	{
-		auto x = pythonic::numpy::random::rand(100);
-		auto y = pythonic::numpy::random::rand(100);
+		auto x = pythonic::numpy::random::rand(state.range(0), state.range(0));
+		auto y = pythonic::numpy::random::rand(state.range(0), state.range(0));
 
-		while (state.KeepRunning())
+		for (auto _ : state)
 		{
-			pythonic::types::ndarray<double, 1> z = x + y;
+			pythonic::types::ndarray<double, 2> z = x + y;
 			benchmark::DoNotOptimize(z.fbegin());
 		}
 	}

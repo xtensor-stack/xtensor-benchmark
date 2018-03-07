@@ -11,9 +11,10 @@
 #include <benchmark/benchmark.h>
 
 #include "benchmark_1D.hpp"
-#include "benchmark_views.hpp"
 #include "benchmark_2D.hpp"
+#include "benchmark_views.hpp"
 #include "benchmark_allocators.hpp"
+#include "benchmark_broadcasting.hpp"
 
 #ifdef XTENSOR_USE_XSIMD
 #ifdef __GNUC__

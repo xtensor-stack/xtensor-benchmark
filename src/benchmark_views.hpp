@@ -47,7 +47,7 @@ namespace xt
         auto av = xt::view(a, range(0, 5), range(0, 5));
         auto bv = xt::view(b, range(0, 5), range(0, 5));
 
-		while (state.KeepRunning())
+		for (auto _ : state)
 		{
 			tensor res(av + bv);
 			benchmark::DoNotOptimize(res.raw_data());
@@ -69,7 +69,7 @@ namespace xt
         auto av = xt::dynamic_view(a, sv);
         auto bv = xt::dynamic_view(b, sv);
 
-		while (state.KeepRunning())
+		for (auto _ : state)
 		{
 			tensor res(av + bv);
 			benchmark::DoNotOptimize(res.raw_data());
@@ -87,7 +87,7 @@ namespace xt
         auto av = a.topLeftCorner(5, 5);
         auto bv = b.topLeftCorner(5, 5);
 
-		while (state.KeepRunning())
+		for (auto _ : state)
 		{
 			MatrixXd res(5, 5);
 			res.noalias() = av + bv;
@@ -105,7 +105,7 @@ namespace xt
         auto av = Map<VectorXd, 0, InnerStride<2>>(a.data(), a.size() / 2);
         auto bv = Map<VectorXd, 0, InnerStride<2>>(b.data(), b.size() / 2);
 
-		while (state.KeepRunning())
+		for (auto _ : state)
 		{
 			VectorXd res(av + bv);
 			benchmark::DoNotOptimize(res.data());
@@ -128,7 +128,7 @@ namespace xt
         auto av = xt::dynamic_view(a, sv);
         auto bv = xt::dynamic_view(b, sv);
 
-		while (state.KeepRunning())
+		for (auto _ : state)
 		{
 			tensor res(av + bv);
 			benchmark::DoNotOptimize(res.data());
@@ -145,7 +145,7 @@ namespace xt
 		tensor a = random::rand<double>({state.range(0) / 2});
 		tensor b = random::rand<double>({state.range(0) / 2});
 
-		while (state.KeepRunning())
+		for (auto _ : state)
 		{
 			tensor res(a + b);
 			benchmark::DoNotOptimize(res.data());
@@ -167,7 +167,7 @@ namespace xt
 		auto av = xt::adapt(std::move(a.data()), shape, stride);
 		auto bv = xt::adapt(std::move(b.data()), shape, stride);
 
-		while (state.KeepRunning())
+		for (auto _ : state)
 		{
 			tensor res(av + bv);
 			benchmark::DoNotOptimize(res.data());
@@ -184,7 +184,7 @@ namespace xt
 		tensor a = random::rand<double>({state.range(0)});
 		tensor b = random::rand<double>({state.range(0)});
 		std::array<std::size_t, 1> shape = {static_cast<std::size_t>(state.range(0)) / 2};
-		while (state.KeepRunning())
+		for (auto _ : state)
 		{
 			tensor res(shape);
 			std::size_t j = 0;

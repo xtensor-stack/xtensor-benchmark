@@ -58,6 +58,7 @@ set(XTENSOR_BENCHMARK_TARGET xtensor_benchmark)
 set(XTENSOR_BENCHMARK
     src/benchmark_1D.hpp
     src/benchmark_2D.hpp
+    src/benchmark_broadcasting.hpp
     src/benchmark_views.hpp
     src/benchmark_allocators.hpp
     src/main.cpp
