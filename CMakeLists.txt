@@ -150,9 +150,10 @@ endif()
     message("Found xsimd     : ${xsimd_INCLUDE_DIRS}\n\n")
 
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/src/profile_snip.cpp)
-  add_executable(profile_snip
-      src/profile_snip.cpp
-      ${XTENSOR_HEADERS})
+    add_executable(profile_snip
+        EXCLUDE_FROM_ALL
+        src/profile_snip.cpp
+        ${XTENSOR_HEADERS})
 endif()
 
 add_custom_target(xbenchmark
