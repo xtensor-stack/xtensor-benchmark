@@ -55,7 +55,7 @@ namespace xt
             tensor a = random::rand<double>({state.range(0)});
             tensor b = random::rand<double>({state.range(0)});
 
-            while (state.KeepRunning())
+            for (auto _ : state)
             {
                 tensor res(a + b);
                 benchmark::DoNotOptimize(res.raw_data());
@@ -77,10 +77,8 @@ namespace xt
 
             std::size_t sz = state.range(0);
 
-            while (state.KeepRunning())
+            for (auto _ : state)
             {
-                // std::cout << align_begin << ", " << align_end << std::endl;
-                // std::cout << sz << ", " << batch::size << ", " << align_begin << std::endl;
                 std::size_t align_begin = is_aligned ? 0 : xsimd::get_alignment_offset(a.data(), sz, batch::size);
                 std::size_t align_end = align_begin + ((sz - align_begin) & ~(batch::size - 1));
 
@@ -113,7 +111,7 @@ namespace xt
             using namespace Eigen;
             VectorXd a = VectorXd::Random(state.range(0));
             VectorXd b = VectorXd::Random(state.range(0));
-            while (state.KeepRunning())
+            for (auto _ : state)
             {
                 VectorXd res(a + b);
                 benchmark::DoNotOptimize(res.data());
@@ -128,7 +126,7 @@ namespace xt
             using namespace blitz;
             Array<double, 1> a(state.range(0));
             Array<double, 1> b(state.range(0));
-            while (state.KeepRunning())
+            for (auto _ : state)
             {
                 Array<double, 1> res(a + b);
                 benchmark::DoNotOptimize(res.data());
@@ -143,7 +141,7 @@ namespace xt
             using namespace arma;
             vec a = randu<vec>(state.range(0));
             vec b = randu<vec>(state.range(0));
-            while (state.KeepRunning())
+            for (auto _ : state)
             {
                 vec res(a + b);
                 benchmark::DoNotOptimize(res.memptr());
@@ -158,7 +156,7 @@ namespace xt
             auto x = pythonic::numpy::random::rand(state.range(0));
             auto y = pythonic::numpy::random::rand(state.range(0));
 
-            while (state.KeepRunning())
+            for (auto _ : state)
             {
                 pythonic::types::ndarray<double, 1> z(x + y);
                 benchmark::DoNotOptimize(z.fbegin());
