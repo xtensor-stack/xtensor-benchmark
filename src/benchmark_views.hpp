@@ -33,6 +33,10 @@
 #define RANGE 128, 128
 #define MULTIPLIER 8
 
+#define XTENSOR_VERSION (XTENSOR_VERSION_MAJOR * 10000 \
+                       + XTENSOR_VERSION_MINOR * 100 \
+                       + XTENSOR_VERSION_PATCH)
+
 namespace xt
 {
 	void xtensor_view(benchmark::State& state)
@@ -64,7 +68,11 @@ namespace xt
 		tensor a = random::rand<double>({state.range(0), state.range(0)});
 		tensor b = random::rand<double>({state.range(0), state.range(0)});
 
-        auto sv = xt::slice_vector(a, range(0, 5), range(0, 5));
+    #if XTENSOR_VERSION > 1505
+        auto sv = xt::slice_vector{range(0, 5), range(0, 5)};
+    #else
+        auto sv = xt::slice_vector(a, {range(0, 5), range(0, 5)});
+    #endif
 
         auto av = xt::dynamic_view(a, sv);
         auto bv = xt::dynamic_view(b, sv);
@@ -123,7 +131,11 @@ namespace xt
 		tensor a = random::rand<double>({state.range(0)});
 		tensor b = random::rand<double>({state.range(0)});
 
+    #if XTENSOR_VERSION > 1505
+        auto sv = xt::slice_vector{range(0, state.range(0), 2)};
+    #else
         auto sv = xt::slice_vector(a, range(0, state.range(0), 2));
+    #endif
 
         auto av = xt::dynamic_view(a, sv);
         auto bv = xt::dynamic_view(b, sv);
