@@ -19,7 +19,7 @@ After setting up the environment, it is advised to create a `build` directory, a
 ```
 mkdir build
 cd build
-cmake .. -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX
+cmake .. -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX -DBENCHMARK_ALL=ON
 ```
 
 You should see a message for each found library, similar to the following:
