@@ -22,7 +22,7 @@ string(TOUPPER "${CMAKE_BUILD_TYPE}" U_CMAKE_BUILD_TYPE)
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     CHECK_CXX_COMPILER_FLAG("-std=c++14" HAS_CPP14_FLAG)
     if (HAS_CPP14_FLAG)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -ffast-math -march=native -std=c++14 -pthread")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -ffast-math -march=native -std=c++14 -pthread -Wno-narrowing")
     else()
         message(FATAL_ERROR "Unsupported compiler -- xtensor requires C++14 support!")
     endif()
@@ -150,9 +150,10 @@ endif()
     message("Found xsimd     : ${xsimd_INCLUDE_DIRS}\n\n")
 
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/src/profile_snip.cpp)
-  add_executable(profile_snip
-      src/profile_snip.cpp
-      ${XTENSOR_HEADERS})
+    add_executable(profile_snip
+        EXCLUDE_FROM_ALL
+        src/profile_snip.cpp
+        ${XTENSOR_HEADERS})
 endif()
 
 add_custom_target(xbenchmark
