@@ -8,84 +8,57 @@
 
 #include <benchmark/benchmark.h>
 
+#ifdef HAS_XTENSOR
 #include "xtensor/xnoalias.hpp"
 #include "xtensor/xio.hpp"
 #include "xtensor/xrandom.hpp"
 #include "xtensor/xfixed.hpp"
 #include "xtensor/xarray.hpp"
+#endif
 
 #ifdef HAS_EIGEN
 #include <Eigen/Dense>
 #include <Eigen/Core>
 #endif
 
-namespace xt
+#ifdef HAS_XTENSOR
+template <std::size_t N, std::size_t M>
+void Add2dFixed_XTensor(benchmark::State& state)
 {
+    using namespace xt;
 
-    template <std::size_t N, std::size_t M>
-    void xtensor_fixed(benchmark::State& state)
+    xtensor_fixed<double, xshape<N, M>> a = random::rand<double>({N, M});
+    xtensor_fixed<double, xshape<N, M>> b = random::rand<double>({N, M});
+
+    for (auto _ : state)
     {
-        using namespace xt;
-        using tensor = xtensorf<double, xshape<N, M>>;
-
-        tensor a = random::rand<double>({N, M});
-        tensor b = random::rand<double>({N, M});
-
-        for (auto _ : state)
-        {
-            tensor res;
-            xt::noalias(res) = a + b;
-            benchmark::DoNotOptimize(res.raw_data());
-        }
+        xtensor_fixed<double, xshape<N, M>> res;
+        xt::noalias(res) = a + b;
+        benchmark::DoNotOptimize(res.data());
     }
-    BENCHMARK_TEMPLATE(xtensor_fixed, 3, 3);
-    BENCHMARK_TEMPLATE(xtensor_fixed, 5, 5);
-    BENCHMARK_TEMPLATE(xtensor_fixed, 20, 20);
-
-
-#ifdef HAS_EIGEN
-    template <std::size_t N, std::size_t M>
-    void eigen_fixed(benchmark::State& state)
-    {
-        using namespace Eigen;
-        Matrix<double, N, M> a = Matrix<double, N, N>::Random(N, M);
-        Matrix<double, N, M> b = Matrix<double, N, N>::Random(N, M);
-
-        for (auto _ : state)
-        {
-            Matrix<double, N, M> res;
-            res.noalias() = a + b;
-            benchmark::DoNotOptimize(res.data());
-        }
-    }
-    BENCHMARK_TEMPLATE(eigen_fixed, 3, 3);
-    BENCHMARK_TEMPLATE(eigen_fixed, 5, 5);
-    BENCHMARK_TEMPLATE(eigen_fixed, 20, 20);
+}
+BENCHMARK_TEMPLATE(Add2dFixed_XTensor, 3, 3);
+BENCHMARK_TEMPLATE(Add2dFixed_XTensor, 8, 8);
+BENCHMARK_TEMPLATE(Add2dFixed_XTensor, 64, 64);
+BENCHMARK_TEMPLATE(Add2dFixed_XTensor, 512, 512);
 #endif
 
-    template <std::size_t N, std::size_t M>
-    void xtensor_nonfixed(benchmark::State& state)
+#ifdef HAS_EIGEN
+template <std::size_t N, std::size_t M>
+void Add2dFixed_Eigen(benchmark::State& state)
+{
+    using namespace Eigen;
+    Matrix<double, N, M> a = Matrix<double, N, N>::Random(N, M);
+    Matrix<double, N, M> b = Matrix<double, N, N>::Random(N, M);
+
+    for (auto _ : state)
     {
-        using namespace xt;
-        using tensor = xtensor<double, 2>;
-
-        tensor a = random::rand<double>({N, M});
-        tensor b = random::rand<double>({N, M});
-
-        for (auto _ : state)
-        {
-            tensor res;
-            xt::noalias(res) = a + b;
-            benchmark::DoNotOptimize(res.raw_data());
-        }
+        Matrix<double, N, M> res;
+        res.noalias() = a + b;
+        benchmark::DoNotOptimize(res.data());
     }
-    BENCHMARK_TEMPLATE(xtensor_nonfixed, 3, 3);
-    BENCHMARK_TEMPLATE(xtensor_nonfixed, 5, 5);
-    BENCHMARK_TEMPLATE(xtensor_nonfixed, 20, 20);
-
-
 }
-
-#undef SZ
-#undef RANGE
-#undef MULTIPLIER
+BENCHMARK_TEMPLATE(Add2dFixed_Eigen, 3, 3);
+BENCHMARK_TEMPLATE(Add2dFixed_Eigen, 8, 8);
+BENCHMARK_TEMPLATE(Add2dFixed_Eigen, 64, 64);
+#endif
