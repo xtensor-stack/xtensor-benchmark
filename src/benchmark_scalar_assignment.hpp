@@ -25,7 +25,7 @@
 #include <blitz/array.h>
 #endif
 
-#define RANGE 3, 1000
+#define RANGE 16, 1024
 #define MULTIPLIER 8
 
 
@@ -42,6 +42,20 @@ void AssignScalar2D_XTensor(benchmark::State& state)
     }
 }
 BENCHMARK(AssignScalar2D_XTensor)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+void AssignScalar2DLoop_XTensor(benchmark::State& state)
+{
+    xt::xtensor<double, 2> vTensor({state.range(0), state.range(0)});
+    double value = 0.0;
+    for (auto _ : state)
+    {
+        for (size_t i = 0; i < vTensor.shape(0); ++i)
+            for (size_t j = 0; j < vTensor.shape(1); ++j)
+                vTensor(i, j) = value;
+        value += 1.0;
+        benchmark::DoNotOptimize(vTensor.data());
+    }
+}
+BENCHMARK(AssignScalar2DLoop_XTensor)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 #endif
 
 #ifdef HAS_EIGEN

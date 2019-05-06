@@ -39,7 +39,7 @@ static_assert(false, "NOT VECTORIZING");
 #include <pythonic/numpy/random/rand.hpp>
 #endif
 
-#define RANGE 3, 1000
+#define RANGE 16, 128*128
 #define MULTIPLIER 8
 
 

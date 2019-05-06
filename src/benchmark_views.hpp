@@ -55,46 +55,64 @@ void Add2dView_XTensor(benchmark::State& state)
     }
 }
 BENCHMARK(Add2dView_XTensor)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
-#endif
 
-#ifdef HAS_EIGEN
-void Add2dView_Eigen(benchmark::State& state)
+void Assign2dView_XTensor(benchmark::State& state)
 {
-    using namespace Eigen;
-    MatrixXd vA = MatrixXd::Random(state.range(0), state.range(0));
-    MatrixXd vB = MatrixXd::Random(state.range(0), state.range(0));
+    using namespace xt;
 
-    auto vAView = vA.topLeftCorner(state.range(0), state.range(0));
-    auto vBView = vB.topLeftCorner(state.range(0), state.range(0));
+    xtensor<double,2> vA = random::rand<double>({state.range(0), state.range(0)});
+    xtensor<double,2> vB = random::rand<double>({state.range(0), state.range(0)});
+
+    auto vAView = xt::view(vA, all(), all());
 
     for (auto _ : state)
     {
-        MatrixXd vRes(state.range(0), state.range(0));
-        vRes.noalias() = vAView + vBView;
-        benchmark::DoNotOptimize(vRes.data());
+        xt::noalias(vAView) = vB;
+        benchmark::DoNotOptimize(vA.data());
     }
 }
-BENCHMARK(Add2dView_Eigen)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+BENCHMARK(Assign2dView_XTensor)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 
-//void Add1dMap_Eigen(benchmark::State& state)
-//{
-//    using namespace Eigen;
-//    MatrixXd vA = VectorXd::Random(state.range(0));
-//    MatrixXd vB = VectorXd::Random(state.range(0));
-//
-//    auto vAView = Map<VectorXd, 0, InnerStride<1>>(vA.data(), vA.size());
-//    auto vBView = Map<VectorXd, 0, InnerStride<1>>(vB.data(), vB.size());
-//
-//    for (auto _ : state)
-//    {
-//        VectorXd vRes(vAView + vBView);
-//        benchmark::DoNotOptimize(vRes.data());
-//    }
-//}
-//BENCHMARK(Add1dMap_Eigen)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
-#endif
+void Assign2dNotContiguousHalfView_XTensor(benchmark::State& state)
+{
+    using namespace xt;
 
-#ifdef HAS_XTENSOR
+    size_t size = state.range(0);
+
+    xtensor<double, 2> vA = random::rand<double>({size, size});
+    xtensor<double, 2> vB = random::rand<double>({size/2, size/2});
+
+    auto vAView = xt::view(vA, range(size/4, size/4 + size/2),
+                               range(size/4, size/4 + size/2));
+
+    for (auto _ : state)
+    {
+        xt::noalias(vAView) = vB;
+        benchmark::DoNotOptimize(vA.data());
+    }
+}
+BENCHMARK(Assign2dNotContiguousHalfView_XTensor)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+
+void Assign2dContiguousHalfView_XTensor(benchmark::State& state)
+{
+    using namespace xt;
+
+    size_t size = state.range(0);
+
+    xtensor<double, 2> vA = random::rand<double>({size, size});
+    xtensor<double, 2> vB = random::rand<double>({size/4, size});
+
+    auto vAView = xt::view(vA, range(0, size/4),
+                               range(0, size));
+
+    for (auto _ : state)
+    {
+        xt::noalias(vAView) = vB;
+        benchmark::DoNotOptimize(vA.data());
+    }
+}
+BENCHMARK(Assign2dContiguousHalfView_XTensor)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+
 void Add2dStridedView_XTensor(benchmark::State& state)
 {
     using namespace xt;
@@ -112,6 +130,63 @@ void Add2dStridedView_XTensor(benchmark::State& state)
     }
 }
 BENCHMARK(Add2dStridedView_XTensor)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+
+void Assign2dStridedView_XTensor(benchmark::State& state)
+{
+    using namespace xt;
+
+    xtensor<double, 2> vA = random::rand<double>({state.range(0), state.range(0)});
+    xtensor<double, 2> vB = random::rand<double>({state.range(0), state.range(0)});
+
+    auto vAView = xt::strided_view(vA, {all(), all()});
+
+    for (auto _ : state)
+    {
+        xt::noalias(vAView) = vB;
+        benchmark::DoNotOptimize(vA.data());
+    }
+}
+BENCHMARK(Assign2dStridedView_XTensor)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+
+void Assign2dNotContiguousHalfStridedView_XTensor(benchmark::State& state)
+{
+    using namespace xt;
+
+    size_t size = state.range(0);
+
+    xtensor<double, 2> vA = random::rand<double>({size, size});
+    xtensor<double, 2> vB = random::rand<double>({size/2, size/2});
+
+    auto vAView = xt::strided_view(vA, {range(size/4, size/4 + size/2),
+                                        range(size/4, size/4 + size/2)});
+
+    for (auto _ : state)
+    {
+        xt::noalias(vAView) = vB;
+        benchmark::DoNotOptimize(vA.data());
+    }
+}
+BENCHMARK(Assign2dNotContiguousHalfStridedView_XTensor)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+
+void Assign2dContiguousHalfStridedView_XTensor(benchmark::State& state)
+{
+    using namespace xt;
+
+    size_t size = state.range(0);
+
+    xtensor<double, 2> vA = random::rand<double>({size, size});
+    xtensor<double, 2> vB = random::rand<double>({size/4, size});
+
+    auto vAView = xt::strided_view(vA, {range(0, size/4),
+                                        range(0, size)});
+
+    for (auto _ : state)
+    {
+        xt::noalias(vAView) = vB;
+        benchmark::DoNotOptimize(vA.data());
+    }
+}
+BENCHMARK(Assign2dContiguousHalfStridedView_XTensor)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 
 void Add2dDynamicView_XTensor(benchmark::State& state)
 {
@@ -154,9 +229,11 @@ void Add2dLoop_XTensor(benchmark::State& state)
 {
     using namespace xt;
 
-    xtensor<double, 2> vA = random::rand<double>({state.range(0), state.range(0)});
-    xtensor<double, 2> vB = random::rand<double>({state.range(0), state.range(0)});
-    std::array<std::size_t, 2> vShape = {static_cast<std::size_t>(state.range(0)), static_cast<std::size_t>(state.range(0))};
+    size_t size = state.range(0);
+
+    xtensor<double, 2> vA = random::rand<double>({size, size});
+    xtensor<double, 2> vB = random::rand<double>({size, size});
+    std::array<std::size_t, 2> vShape = {static_cast<std::size_t>(size), static_cast<std::size_t>(size)};
     for (auto _ : state)
     {
         xtensor<double, 2> vRes(vShape);
@@ -171,8 +248,86 @@ void Add2dLoop_XTensor(benchmark::State& state)
     }
 }
 BENCHMARK(Add2dLoop_XTensor)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+
+void Assign2dLoop_XTensor(benchmark::State& state)
+{
+    using namespace xt;
+
+    size_t size = state.range(0);
+
+    xtensor<double, 2> vA = random::rand<double>({size, size});
+    xtensor<double, 2> vB = random::rand<double>({size, size});
+    for (auto _ : state)
+    {
+        for (std::size_t i = 0; i < size; ++i)
+        {
+            for (std::size_t j = 0; j < size; ++j)
+            {
+                vA(i, j) = vB(i, j);
+            }
+        }
+        benchmark::DoNotOptimize(vA.data());
+    }
+}
+BENCHMARK(Assign2dLoop_XTensor)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+
+void Assign2dNotContiguousHalfLoop_XTensor(benchmark::State& state)
+{
+    using namespace xt;
+
+    size_t size = state.range(0);
+
+    xtensor<double, 2> vA = random::rand<double>({size, size});
+    xtensor<double, 2> vB = random::rand<double>({size/2, size/2});
+    for (auto _ : state)
+    {
+        for (std::size_t i = 0; i < size / 2; ++i) {
+            for (std::size_t j = 0; j < size / 2; ++j) {
+                vA(i + size / 4, j + size / 4) = vB(i, j);
+            }
+        }
+        benchmark::DoNotOptimize(vA.data());
+    }
+}
+BENCHMARK(Assign2dNotContiguousHalfLoop_XTensor)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 #endif
 
+#ifdef HAS_EIGEN
+void Add2dView_Eigen(benchmark::State& state)
+{
+    using namespace Eigen;
+    MatrixXd vA = MatrixXd::Random(state.range(0), state.range(0));
+    MatrixXd vB = MatrixXd::Random(state.range(0), state.range(0));
+
+    auto vAView = vA.topLeftCorner(state.range(0), state.range(0));
+    auto vBView = vB.topLeftCorner(state.range(0), state.range(0));
+
+    for (auto _ : state)
+    {
+        MatrixXd vRes(state.range(0), state.range(0));
+        vRes.noalias() = vAView + vBView;
+        benchmark::DoNotOptimize(vRes.data());
+    }
+}
+BENCHMARK(Add2dView_Eigen)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+
+//void Add1dMap_Eigen(benchmark::State& state)
+//{
+//    using namespace Eigen;
+//    MatrixXd vA = VectorXd::Random(state.range(0));
+//    MatrixXd vB = VectorXd::Random(state.range(0));
+//
+//    auto vAView = Map<VectorXd, 0, InnerStride<1>>(vA.data(), vA.size());
+//    auto vBView = Map<VectorXd, 0, InnerStride<1>>(vB.data(), vB.size());
+//
+//    for (auto _ : state)
+//    {
+//        VectorXd vRes(vAView + vBView);
+//        benchmark::DoNotOptimize(vRes.data());
+//    }
+//}
+//BENCHMARK(Add1dMap_Eigen)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+#endif
 
 #undef RANGE
 #undef MULTIPLIER
