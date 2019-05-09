@@ -16,16 +16,34 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/modules/
 include(CheckCXXCompilerFlag)
 string(TOUPPER "${CMAKE_BUILD_TYPE}" U_CMAKE_BUILD_TYPE)
 
+# Optional dependencies
+# =====================
+
+option(BENCHMARK_XTENSOR "benchmark against xtensor" ON)
+option(BENCHMARK_EIGEN "benchmark against eigen" OFF)
+option(BENCHMARK_BLITZ "benchmark against Blitz" OFF)
+option(BENCHMARK_ARMADILLO "benchmark agains Armadillo" OFF)
+option(BENCHMARK_PYTHONIC "benchmark agains numpy + pythran" OFF)
+option(BENCHMARK_ALL "benchmark against all libraries" OFF)
+option(BUILD_EXTERNAL_GOOGLEBENCHMARK "Download and build google benchmark" OFF)
+
+if(BENCHMARK_ALL)
+    set(BENCHMARK_XTENSOR ON)
+    set(BENCHMARK_EIGEN ON)
+    set(BENCHMARK_BLITZ ON)
+    set(BENCHMARK_ARMADILLO ON)
+    set(BENCHMARK_PYTHONIC ON)
+endif()
+
 # Compilation flags
 # =================
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     CHECK_CXX_COMPILER_FLAG("-std=c++14" HAS_CPP14_FLAG)
-    if (HAS_CPP14_FLAG)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -ffast-math -march=native -std=c++14 -pthread")
-    else()
+    if (NOT HAS_CPP14_FLAG)
         message(FATAL_ERROR "Unsupported compiler -- xtensor requires C++14 support!")
     endif()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -ffast-math -march=native -pthread")
 endif()
 
 if(MSVC)
@@ -35,33 +53,40 @@ if(MSVC)
     set(CMAKE_EXE_LINKER_FLAGS /MANIFEST:NO)
 endif()
 
-configure_file(modules/downloadGBenchmark.cmake.in googlebenchmark-download/CMakeLists.txt)
-execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
-                RESULT_VARIABLE result
-                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googlebenchmark-download )
-execute_process(COMMAND ${CMAKE_COMMAND} --build .
-                RESULT_VARIABLE result
-                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googlebenchmark-download )
+if(BUILD_EXTERNAL_GOOGLEBENCHMARK)
+    configure_file(modules/downloadGBenchmark.cmake.in googlebenchmark-download/CMakeLists.txt)
+    execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+                    RESULT_VARIABLE result
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googlebenchmark-download )
+    execute_process(COMMAND ${CMAKE_COMMAND} --build .
+                    RESULT_VARIABLE result
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googlebenchmark-download )
 
-# Add googlebenchmark directly to our build. This defines
-# the gtest and gtest_main targets.
-add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googlebenchmark-src
-                 ${CMAKE_CURRENT_BINARY_DIR}/googlebenchmark-build)
+    # Add googlebenchmark directly to our build. This defines
+    # the gtest and gtest_main targets.
+    add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googlebenchmark-src
+                     ${CMAKE_CURRENT_BINARY_DIR}/googlebenchmark-build)
+    set(GBENCHMARK_INCLUDE_DIRS "${googlebenchmark_SOURCE_DIR}/include")
+    set(GBENCHMARK_LIBRARIES benchmark)
+else()
+    find_package(benchmark REQUIRED)
+    set(GBENCHMARK_LIBRARIES benchmark::benchmark_main)
+endif()
 
-set(GBENCHMARK_INCLUDE_DIRS "${googlebenchmark_SOURCE_DIR}/include")
-set(GBENCHMARK_LIBRARIES benchmark)
 
 # Sources and target
 # ==================
 
 set(XTENSOR_BENCHMARK_TARGET xtensor_benchmark)
 set(XTENSOR_BENCHMARK
-    src/benchmark_1D.hpp
-    src/benchmark_2D.hpp
+    src/benchmark_add_1d.hpp
+    src/benchmark_add_2d.hpp
     src/benchmark_broadcasting.hpp
     src/benchmark_views.hpp
-    src/benchmark_allocators.hpp
     src/benchmark_fixed.hpp
+    src/benchmark_constructor.hpp
+    src/benchmark_scalar_assignment.hpp
+    src/benchmark_iterators.hpp
     src/main.cpp
 )
 
@@ -75,27 +100,16 @@ find_package(xsimd REQUIRED)
 find_package(xtl REQUIRED)
 find_package(Threads)
 
-target_compile_definitions(${XTENSOR_BENCHMARK_TARGET} PRIVATE XTENSOR_USE_XSIMD=1 NDEBUG=1)
-target_include_directories(${XTENSOR_BENCHMARK_TARGET} PRIVATE ${GBENCHMARK_INCLUDE_DIRS})
 target_include_directories(${XTENSOR_BENCHMARK_TARGET} PRIVATE ${xtensor_INCLUDE_DIRS} ${xtl_INCLUDE_DIRS})
+target_include_directories(${XTENSOR_BENCHMARK_TARGET} PRIVATE ${GBENCHMARK_INCLUDE_DIRS})
+target_compile_definitions(${XTENSOR_BENCHMARK_TARGET} PRIVATE XTENSOR_USE_XSIMD=1 NDEBUG=1)
+set_target_properties(${XTENSOR_BENCHMARK_TARGET} PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON CXX_EXTENSIONS NO)
 target_link_libraries(${XTENSOR_BENCHMARK_TARGET}
                       ${GBENCHMARK_LIBRARIES}
                       ${CMAKE_THREAD_LIBS_INIT})
 
-# Optional dependencies
-# =====================
-
-option(BENCHMARK_EIGEN "benchmark against eigen" OFF)
-option(BENCHMARK_BLITZ "benchmark against Blitz" OFF)
-option(BENCHMARK_ARMADILLO "benchmark agains Armadillo" OFF)
-option(BENCHMARK_PYTHONIC "benchmark agains numpy + pythran" OFF)
-option(BENCHMARK_ALL "benchmark against the world" OFF)
-
-if(BENCHMARK_ALL)
-    set(BENCHMARK_EIGEN ON)
-    set(BENCHMARK_BLITZ ON)
-    set(BENCHMARK_ARMADILLO ON)
-    set(BENCHMARK_PYTHONIC ON)
+if(BENCHMARK_XTENSOR)
+    target_compile_definitions(${XTENSOR_BENCHMARK_TARGET} PRIVATE HAS_XTENSOR=1)
 endif()
 
 if(BENCHMARK_EIGEN)
@@ -131,9 +145,14 @@ if(BENCHMARK_PYTHONIC)
     target_link_libraries(${XTENSOR_BENCHMARK_TARGET} ${PYTHON_LIBRARIES})
 endif()
 
+
     message("\n\n          COMPILING WITH\n======================================\n\n")
     message("COMPILER        : ${CMAKE_CXX_COMPILER}")
     message("FLAGS           : ${CMAKE_CXX_FLAGS}\n")
+if(BENCHMARK_XTENSOR)
+    message("Found xtensor   : ${xtensor_INCLUDE_DIRS}")
+    message("Found xsimd     : ${xsimd_INCLUDE_DIRS}\n\n")
+endif()
 if(BENCHMARK_EIGEN)
     message("Found eigen     : ${EIGEN3_INCLUDE_DIR}")
 endif()
@@ -146,8 +165,8 @@ endif()
 if(BENCHMARK_PYTHONIC)
     message("Found Pythran   : ${Pythran_INCLUDE_DIRS}")
 endif()
-    message("Found xtensor   : ${xtensor_INCLUDE_DIRS}")
-    message("Found xsimd     : ${xsimd_INCLUDE_DIRS}\n\n")
+    message("Using benchmark : ${GBENCHMARK_INCLUDE_DIRS} | ${GBENCHMARK_LIBRARIES}")
+
 
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/src/profile_snip.cpp)
   add_executable(profile_snip

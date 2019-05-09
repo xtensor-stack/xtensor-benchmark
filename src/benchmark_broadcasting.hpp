@@ -8,11 +8,13 @@
 
 #include <benchmark/benchmark.h>
 
+#ifdef HAS_XTENSOR
 #include "xtensor/xnoalias.hpp"
 #include "xtensor/xio.hpp"
 #include "xtensor/xrandom.hpp"
 #include "xtensor/xtensor.hpp"
 #include "xtensor/xarray.hpp"
+#endif
 
 #ifdef HAS_PYTHONIC
 #include <pythonic/core.hpp>
@@ -22,45 +24,40 @@
 #endif
 
 #define SZ 100
-#define RANGE 3, 64
+#define RANGE 3, 1000
 #define MULTIPLIER 8
 
-namespace xt
+#ifdef HAS_XTENSOR
+void Add3d2dBroadcasting_XTensor(benchmark::State& state)
 {
-	void xtensor_broadcasting(benchmark::State& state)
-	{
-		using namespace xt;
-		using allocator = xsimd::aligned_allocator<double, 32>;
-		using tensor3 = xtensor_container<xt::uvector<double, allocator>, 3, layout_type::row_major>;
-		using tensor2 = xtensor_container<xt::uvector<double, allocator>, 2, layout_type::row_major>;
+    using namespace xt;
 
-		tensor3 a = random::rand<double>({state.range(0), state.range(0), state.range(0)});
-		tensor2 b = random::rand<double>({state.range(0), state.range(0)});
+    xtensor<double, 3> a = random::rand<double>({state.range(0), state.range(0), state.range(0)});
+    xtensor<double, 2> b = random::rand<double>({state.range(0), state.range(0)});
 
-        for (auto _ : state)
-		{
-			tensor3 res(a + b);
-			benchmark::DoNotOptimize(res.raw_data());
-		}
-	}
-	BENCHMARK(xtensor_broadcasting)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
-
-#ifdef HAS_PYTHONIC
-	void pythonic_broadcasting(benchmark::State& state)
-	{
-		auto x = pythonic::numpy::random::rand(state.range(0), state.range(0), state.range(0));
-		auto y = pythonic::numpy::random::rand(state.range(0), state.range(0));
-
-        for (auto _ : state)
-		{
-			pythonic::types::ndarray<double, 3> z = x + y;
-			benchmark::DoNotOptimize(z.fbegin());
-		}
-	}
-	BENCHMARK(pythonic_broadcasting)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+    for (auto _ : state)
+    {
+        xtensor<double, 3> res(a + b);
+        benchmark::DoNotOptimize(res.data());
+    }
+}
+BENCHMARK(Add3d2dBroadcasting_XTensor)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 #endif
 
+#ifdef HAS_PYTHONIC
+void pythonic_broadcasting(benchmark::State& state)
+{
+    auto x = pythonic::numpy::random::rand(state.range(0), state.range(0), state.range(0));
+    auto y = pythonic::numpy::random::rand(state.range(0), state.range(0));
+
+    for (auto _ : state)
+    {
+        pythonic::types::ndarray<double, 3> z = x + y;
+        benchmark::DoNotOptimize(z.fbegin());
+    }
 }
+BENCHMARK(pythonic_broadcasting)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+#endif
 
 #undef SZ
 #undef RANGE
