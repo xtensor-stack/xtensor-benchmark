@@ -25,6 +25,11 @@
 #include <blitz/array.h>
 #endif
 
+#ifdef HAS_VIGRA
+#include "vigra/multi_array.hxx"
+#include "vigra/multi_math.hxx"
+#endif
+
 #define RANGE 3, 1000
 #define MULTIPLIER 8
 
@@ -64,6 +69,19 @@ void Construct2D_Blitz(benchmark::State& state)
     }
 }
 BENCHMARK(Construct2D_Blitz)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+#endif
+
+#ifdef HAS_VIGRA
+void Construct2D_Vigra(benchmark::State& state)
+{
+    using namespace vigra::multi_math;
+    for (auto _ : state)
+    {
+        vigra::MultiArray<2, double> vArray(state.range(0), state.range(0));
+        benchmark::DoNotOptimize(vArray);
+    }
+}
+BENCHMARK(Construct2D_Vigra)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 #endif
 
 #ifdef HAS_XTENSOR
@@ -106,6 +124,20 @@ void ConstructView2d_XTensor(benchmark::State& state)
     }
 }
 BENCHMARK(ConstructView2d_XTensor)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+#endif
+
+#ifdef HAS_VIGRA
+void ConstructView2d_Vigra(benchmark::State& state)
+{
+    vigra::MultiArray<2,double> vA(state.range(0), state.range(0));
+
+    for (auto _ : state)
+    {
+        vigra::MultiArrayView<2,double> vAView = vA.subarray({0, 0}, {state.range(0), state.range(0)});
+        benchmark::DoNotOptimize(vAView);
+    }
+}
+BENCHMARK(ConstructView2d_Vigra)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 #endif
 
 #ifdef HAS_EIGEN

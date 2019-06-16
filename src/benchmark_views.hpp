@@ -33,6 +33,11 @@
 #include <armadillo>
 #endif
 
+#ifdef HAS_VIGRA
+#include "vigra/multi_array.hxx"
+#include "vigra/multi_math.hxx"
+#endif
+
 #define RANGE 3, 1000
 #define MULTIPLIER 8
 
@@ -290,6 +295,66 @@ void Assign2dNotContiguousHalfLoop_XTensor(benchmark::State& state)
     }
 }
 BENCHMARK(Assign2dNotContiguousHalfLoop_XTensor)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+#endif
+
+#ifdef HAS_VIGRA
+void Add2dView_Vigra(benchmark::State& state)
+{
+    using namespace vigra::multi_math;
+
+    vigra::MultiArray<2,double> vA(state.range(0), state.range(0));
+    vigra::MultiArray<2,double> vB(state.range(0), state.range(0));
+
+    vigra::MultiArrayView<2,double> vAView = vA.subarray({0, 0}, {state.range(0), state.range(0)});
+    vigra::MultiArrayView<2,double> vBView = vB.subarray({0, 0}, {state.range(0), state.range(0)});
+
+    for (auto _ : state)
+    {
+        vigra::MultiArray<2,double> vRes(vAView + vBView);
+        benchmark::DoNotOptimize(vRes.data());
+    }
+}
+BENCHMARK(Add2dView_Vigra)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+
+void Assign2dView_Vigra(benchmark::State& state)
+{
+    using namespace vigra::multi_math;
+
+    vigra::MultiArray<2,double> vA(state.range(0), state.range(0));
+    vigra::MultiArray<2,double> vB(state.range(0), state.range(0));
+
+    vA = 1;
+    vB = 2;
+
+    vigra::MultiArrayView<2,double> vAView = vA.subarray({0, 0}, {state.range(0), state.range(0)});
+
+    for (auto _ : state)
+    {
+        vAView = vB;
+        benchmark::DoNotOptimize(vA.data());
+    }
+}
+BENCHMARK(Assign2dView_Vigra)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+
+void Assign2dHalfView_Vigra(benchmark::State& state)
+{
+    using namespace vigra::multi_math;
+
+    size_t size = state.range(0);
+
+    vigra::MultiArray<2,double> vA(size, size);
+    vigra::MultiArray<2,double> vB(size/2, size/2);
+
+    vA = 1;
+    vB = 2;
+
+    for (auto _ : state)
+    {
+        vA.subarray({size/4, size/4}, {size/4 + size/2, size/4 + size/2}) = vB;
+        benchmark::DoNotOptimize(vA.data());
+    }
+}
+BENCHMARK(Assign2dHalfView_Vigra)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 #endif
 
 #ifdef HAS_EIGEN

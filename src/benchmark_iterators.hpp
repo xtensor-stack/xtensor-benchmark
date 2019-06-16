@@ -29,6 +29,11 @@
 #include <blitz/array.h>
 #endif
 
+#ifdef HAS_VIGRA
+#include "vigra/multi_array.hxx"
+#include "vigra/multi_math.hxx"
+#endif
+
 #define RANGE 16, 1024
 #define MULTIPLIER 8
 
@@ -128,6 +133,23 @@ void IterateWhole2D_Blitz(benchmark::State& state)
     }
 }
 BENCHMARK(IterateWhole2D_Blitz)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+#endif
+
+#ifdef HAS_VIGRA
+void IterateWhole2D_Vigra(benchmark::State& state)
+{
+    using namespace vigra::multi_math;
+    vigra::MultiArray<2, double> vArray(state.range(0), state.range(0));
+    for (auto _ : state)
+    {
+        double vTmp = 0.0;
+        for (auto it = vArray.begin(); it != vArray.end(); ++it) {
+            vTmp += *it;
+        }
+        benchmark::DoNotOptimize(vTmp);
+    }
+}
+BENCHMARK(IterateWhole2D_Vigra)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 #endif
 
 #undef RANGE

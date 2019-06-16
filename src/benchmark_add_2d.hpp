@@ -36,6 +36,11 @@
 #include <pythonic/numpy/random/rand.hpp>
 #endif
 
+#ifdef HAS_VIGRA
+#include "vigra/multi_array.hxx"
+#include "vigra/multi_math.hxx"
+#endif
+
 #define RANGE 16, 1024
 #define MULTIPLIER 8
 
@@ -116,6 +121,22 @@ void Add2D_Pythonic(benchmark::State& state)
     }
 }
 BENCHMARK(Add2D_Pythonic)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+#endif
+
+#ifdef HAS_VIGRA
+void Add2D_Vigra(benchmark::State& state)
+{
+    using namespace vigra::multi_math;
+    vigra::MultiArray<2, double> vA(state.range(0), state.range(0));
+    vigra::MultiArray<2, double> vB(state.range(0), state.range(0));
+    for (auto _ : state)
+    {
+        vigra::MultiArray<2, double> vRes(state.range(0), state.range(0));
+        vRes = vA + vB;
+        benchmark::DoNotOptimize(vRes.data());
+    }
+}
+BENCHMARK(Add2D_Vigra)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 #endif
 
 #undef RANGE
