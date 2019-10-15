@@ -42,7 +42,7 @@ def init():
 def install_xtensor_version(version):
     try:
         os.mkdir(absdir + '/checkouts')
-        call(['git', 'clone', 'https://github.com/QuantStack/xtensor'])
+        call(['git', 'clone', 'https://github.com/xtensor-stack/xtensor'])
     except:
         os.chdir(absdir + '/checkouts/xtensor')
         call(['git', 'checkout', 'master'])
