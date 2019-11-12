@@ -21,6 +21,8 @@ string(TOUPPER "${CMAKE_BUILD_TYPE}" U_CMAKE_BUILD_TYPE)
 # =====================
 
 option(BENCHMARK_XTENSOR "benchmark against xtensor" ON)
+option(BENCHMARK_CLIKE "benchmark against a C-like reference" OFF)
+option(BENCHMARK_VIGRA "benchmark against Vigra" OFF)
 option(BENCHMARK_EIGEN "benchmark against eigen" OFF)
 option(BENCHMARK_BLITZ "benchmark against Blitz" OFF)
 option(BENCHMARK_ARMADILLO "benchmark agains Armadillo" OFF)
@@ -30,6 +32,8 @@ option(BUILD_EXTERNAL_GOOGLEBENCHMARK "Download and build google benchmark" OFF)
 
 if(BENCHMARK_ALL)
     set(BENCHMARK_XTENSOR ON)
+    set(BENCHMARK_CLIKE ON)
+    set(BENCHMARK_VIGRA ON)
     set(BENCHMARK_EIGEN ON)
     set(BENCHMARK_BLITZ ON)
     set(BENCHMARK_ARMADILLO ON)
@@ -88,6 +92,8 @@ set(XTENSOR_BENCHMARK
     src/benchmark_constructor.hpp
     src/benchmark_scalar_assignment.hpp
     src/benchmark_iterators.hpp
+    src/benchmark_lazy_evaluation.hpp
+    src/benchmark_padding.hpp
     src/main.cpp
 )
 
@@ -113,10 +119,20 @@ if(BENCHMARK_XTENSOR)
     target_compile_definitions(${XTENSOR_BENCHMARK_TARGET} PRIVATE HAS_XTENSOR=1)
 endif()
 
+if(BENCHMARK_CLIKE)
+    target_compile_definitions(${XTENSOR_BENCHMARK_TARGET} PRIVATE HAS_CLIKE=1)
+endif()
+
 if(BENCHMARK_EIGEN)
     find_package(Eigen3 REQUIRED NO_MODULE)
     target_compile_definitions(${XTENSOR_BENCHMARK_TARGET} PRIVATE HAS_EIGEN=1 EIGEN_FAST_MATH=1)
     target_link_libraries(${XTENSOR_BENCHMARK_TARGET} Eigen3::Eigen)
+endif()
+
+if(BENCHMARK_VIGRA)
+    find_package(Vigra 1.11.1 REQUIRED NO_MODULE)
+    target_compile_definitions(${XTENSOR_BENCHMARK_TARGET} PRIVATE HAS_VIGRA=1)
+    target_link_libraries(${XTENSOR_BENCHMARK_TARGET} vigraimpex)
 endif()
 
 if(BENCHMARK_BLITZ)
@@ -154,8 +170,14 @@ if(BENCHMARK_XTENSOR)
     message("Found xtensor   : ${xtensor_INCLUDE_DIRS}")
     message("Found xsimd     : ${xsimd_INCLUDE_DIRS}\n\n")
 endif()
+if(BENCHMARK_CLIKE)
+    message("Will use C-Like : yes")
+endif()
 if(BENCHMARK_EIGEN)
     message("Found eigen     : ${EIGEN3_INCLUDE_DIR}")
+endif()
+if(BENCHMARK_VIGRA)
+    message("Found Vigra     : ${Vigra_INCLUDES}")
 endif()
 if(BENCHMARK_BLITZ)
     message("Found Blitz     : ${BLITZ_INCLUDES} | ${BLITZ_LIBRARIES}")

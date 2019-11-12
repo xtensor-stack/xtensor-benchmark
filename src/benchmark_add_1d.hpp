@@ -40,7 +40,12 @@ static_assert(false, "NOT VECTORIZING");
 #include <pythonic/numpy/random/rand.hpp>
 #endif
 
-#define RANGE 3, 1000
+#ifdef HAS_VIGRA
+#include "vigra/multi_array.hxx"
+#include "vigra/multi_math.hxx"
+#endif
+
+#define RANGE 16, 128*128
 #define MULTIPLIER 8
 
 
@@ -89,6 +94,22 @@ void Add1D_Blitz(benchmark::State& state)
     }
 }
 BENCHMARK(Add1D_Blitz)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+#endif
+
+#ifdef HAS_VIGRA
+void Add1D_Vigra(benchmark::State& state)
+{
+    using namespace vigra::multi_math;
+    vigra::MultiArray<1, double> vA(state.range(0));
+    vigra::MultiArray<1, double> vB(state.range(0));
+    for (auto _ : state)
+    {
+        vigra::MultiArray<1, double> vRes(state.range(0));
+        vRes = vA + vB;
+        benchmark::DoNotOptimize(vRes.data());
+    }
+}
+BENCHMARK(Add1D_Vigra)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 #endif
 
 #ifdef HAS_ARMADILLO

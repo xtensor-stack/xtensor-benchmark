@@ -17,6 +17,10 @@
 #include "xtensor/xarray.hpp"
 #endif
 
+#ifdef HAS_CLIKE
+#include <vector>
+#endif
+
 #ifdef HAS_EIGEN
 #include <Eigen/Dense>
 #include <Eigen/Core>
@@ -26,9 +30,13 @@
 #include <blitz/array.h>
 #endif
 
-#define RANGE 3, 1000
-#define MULTIPLIER 8
+#ifdef HAS_VIGRA
+#include "vigra/multi_array.hxx"
+#include "vigra/multi_math.hxx"
+#endif
 
+#define RANGE 16, 1024
+#define MULTIPLIER 8
 
 #ifdef HAS_XTENSOR
 void IterateWhole2D_XTensor(benchmark::State& state)
@@ -44,6 +52,54 @@ void IterateWhole2D_XTensor(benchmark::State& state)
     }
 }
 BENCHMARK(IterateWhole2D_XTensor)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+
+void IterateWhole2DView_XTensor(benchmark::State& state)
+{
+    xt::xtensor<double, 2> vTensor({state.range(0), state.range(0)});
+    auto vView = xt::view(vTensor, xt::all());
+    for (auto _ : state)
+    {
+        double vTmp = 0.0;
+        for (auto it = vView.begin(); it != vView.end(); ++it) {
+            vTmp += *it;
+        }
+        benchmark::DoNotOptimize(vTmp);
+    }
+}
+BENCHMARK(IterateWhole2DView_XTensor)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+
+void IterateWhole2DStridedView_XTensor(benchmark::State& state)
+{
+    xt::xtensor<double, 2> vTensor({state.range(0), state.range(0)});
+    auto vView = xt::strided_view(vTensor, {xt::all()});
+    for (auto _ : state)
+    {
+        double vTmp = 0.0;
+        for (auto it = vView.begin(); it != vView.end(); ++it) {
+            vTmp += *it;
+        }
+        benchmark::DoNotOptimize(vTmp);
+    }
+}
+BENCHMARK(IterateWhole2DStridedView_XTensor)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+#endif
+
+#ifdef HAS_CLIKE
+void IterateWhole2D_CLike(benchmark::State& state)
+{
+    std::vector<double> vTensor(state.range(0) * state.range(0));
+    for (auto _ : state)
+    {
+        double vTmp = 0.0;
+        double* it = vTensor.data();
+        double* end = vTensor.data() + vTensor.size();
+        for (; it != end; ++it) {
+            vTmp += *it;
+        }
+        benchmark::DoNotOptimize(vTmp);
+    }
+}
+BENCHMARK(IterateWhole2D_CLike)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 #endif
 
 //#ifdef HAS_EIGEN
@@ -78,6 +134,23 @@ void IterateWhole2D_Blitz(benchmark::State& state)
     }
 }
 BENCHMARK(IterateWhole2D_Blitz)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
+#endif
+
+#ifdef HAS_VIGRA
+void IterateWhole2D_Vigra(benchmark::State& state)
+{
+    using namespace vigra::multi_math;
+    vigra::MultiArray<2, double> vArray(state.range(0), state.range(0));
+    for (auto _ : state)
+    {
+        double vTmp = 0.0;
+        for (auto it = vArray.begin(); it != vArray.end(); ++it) {
+            vTmp += *it;
+        }
+        benchmark::DoNotOptimize(vTmp);
+    }
+}
+BENCHMARK(IterateWhole2D_Vigra)->RangeMultiplier(MULTIPLIER)->Range(RANGE);
 #endif
 
 #undef RANGE

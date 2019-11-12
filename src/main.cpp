@@ -19,6 +19,8 @@
 #include "benchmark_constructor.hpp"
 #include "benchmark_scalar_assignment.hpp"
 #include "benchmark_iterators.hpp"
+#include "benchmark_lazy_evaluation.hpp"
+#include "benchmark_padding.hpp"
 
 
 #ifdef XTENSOR_USE_XSIMD
@@ -51,4 +53,7 @@ int main(int argc, char** argv)
     benchmark::Initialize(&argc, argv);
     if (benchmark::ReportUnrecognizedArguments(argc, argv)) return 1;
     benchmark::RunSpecifiedBenchmarks();
+    
+    return 0;
 }
+
