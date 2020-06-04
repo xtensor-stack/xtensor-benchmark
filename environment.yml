@@ -4,6 +4,7 @@ channels:
   - defaults
 dependencies:
   - conda-forge::benchmark
+  - conda-forge::libblitz
   - eigen
   - armadillo
   - xsimd

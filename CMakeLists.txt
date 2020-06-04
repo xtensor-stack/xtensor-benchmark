@@ -116,9 +116,9 @@ if(BENCHMARK_ARMADILLO)
 endif()
 
 if(BENCHMARK_PYTHONIC)
-    find_package(PythonLibs)
-    find_package(NumPy)
-    find_package(Pythran)
+    find_package(PythonLibs REQUIRED)
+    find_package(NumPy REQUIRED)
+    find_package(Pythran REQUIRED)
     link_directories(${Pythran_INCLUDE_DIRS})
     target_compile_definitions(${XTENSOR_BENCHMARK_TARGET} PRIVATE HAS_PYTHONIC=1 ENABLE_PYTHON_MODULE=1 USE_BOOST_SIMD=1)
     target_include_directories(${XTENSOR_BENCHMARK_TARGET} PRIVATE
