@@ -26,7 +26,6 @@ option(BENCHMARK_BLITZ "benchmark against Blitz" OFF)
 option(BENCHMARK_ARMADILLO "benchmark agains Armadillo" OFF)
 option(BENCHMARK_PYTHONIC "benchmark agains numpy + pythran" OFF)
 option(BENCHMARK_ALL "benchmark against all libraries" OFF)
-option(BUILD_EXTERNAL_GOOGLEBENCHMARK "Download and build google benchmark" OFF)
 
 if(BENCHMARK_ALL)
     set(BENCHMARK_XTENSOR ON)
@@ -54,25 +53,8 @@ if(MSVC)
     set(CMAKE_EXE_LINKER_FLAGS /MANIFEST:NO)
 endif()
 
-if(BUILD_EXTERNAL_GOOGLEBENCHMARK)
-    configure_file(modules/downloadGBenchmark.cmake.in googlebenchmark-download/CMakeLists.txt)
-    execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
-                    RESULT_VARIABLE result
-                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googlebenchmark-download )
-    execute_process(COMMAND ${CMAKE_COMMAND} --build .
-                    RESULT_VARIABLE result
-                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googlebenchmark-download )
-
-    # Add googlebenchmark directly to our build. This defines
-    # the gtest and gtest_main targets.
-    add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googlebenchmark-src
-                     ${CMAKE_CURRENT_BINARY_DIR}/googlebenchmark-build)
-    set(GBENCHMARK_INCLUDE_DIRS "${googlebenchmark_SOURCE_DIR}/include")
-    set(GBENCHMARK_LIBRARIES benchmark)
-else()
     find_package(benchmark REQUIRED)
     set(GBENCHMARK_LIBRARIES benchmark::benchmark_main)
-endif()
 
 
 # Sources and target
