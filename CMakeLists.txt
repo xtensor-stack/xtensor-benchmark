@@ -77,6 +77,9 @@ add_executable(${XTENSOR_BENCHMARK_TARGET} ${XTENSOR_BENCHMARK} ${XTENSOR_HEADER
 
 # Mandatory dependencies
 # ======================
+set(CMAKE_LIBRARY_PATH "$ENV{CONDA_PREFIX}/lib")
+set(CMAKE_INCLUDE_PATH "$ENV{CONDA_PREFIX}/include")
+
 
 find_package(xtensor REQUIRED CONFIG)
 find_package(xsimd REQUIRED)
@@ -116,9 +119,9 @@ if(BENCHMARK_ARMADILLO)
 endif()
 
 if(BENCHMARK_PYTHONIC)
-    find_package(PythonLibs REQUIRED)
-    find_package(NumPy REQUIRED)
-    find_package(Pythran REQUIRED)
+    find_package(PythonLibs)
+    find_package(NumPy)
+    find_package(Pythran )
     link_directories(${Pythran_INCLUDE_DIRS})
     target_compile_definitions(${XTENSOR_BENCHMARK_TARGET} PRIVATE HAS_PYTHONIC=1 ENABLE_PYTHON_MODULE=1 USE_BOOST_SIMD=1)
     target_include_directories(${XTENSOR_BENCHMARK_TARGET} PRIVATE
