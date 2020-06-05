@@ -6,12 +6,12 @@ dependencies:
   - conda-forge::benchmark
   - conda-forge::libblitz
   - conda-forge::pythran
-  - eigen
+  - eigen>=3.0
   - armadillo
   - xsimd
   - xtensor
   - xtl
-  - cmake
+  - cmake>=3.1
   - gmp
   - numpy
-  - python==3.7
+  - python>=3.0
