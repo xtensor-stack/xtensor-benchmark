@@ -120,7 +120,7 @@ endif()
 
 if(BENCHMARK_PYTHONIC)
     find_package(PythonLibs)
-    find_package(NumPy)
+    find_package(Numpy)
     find_package(Pythran )
     link_directories(${Pythran_INCLUDE_DIRS})
     target_compile_definitions(${XTENSOR_BENCHMARK_TARGET} PRIVATE HAS_PYTHONIC=1 ENABLE_PYTHON_MODULE=1 USE_BOOST_SIMD=1)
