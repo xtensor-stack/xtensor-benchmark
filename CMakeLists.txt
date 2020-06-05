@@ -77,10 +77,6 @@ add_executable(${XTENSOR_BENCHMARK_TARGET} ${XTENSOR_BENCHMARK} ${XTENSOR_HEADER
 
 # Mandatory dependencies
 # ======================
-set(CMAKE_LIBRARY_PATH "$ENV{CONDA_PREFIX}/lib")
-set(CMAKE_INCLUDE_PATH "$ENV{CONDA_PREFIX}/include")
-
-
 find_package(xtensor REQUIRED CONFIG)
 find_package(xsimd REQUIRED)
 find_package(xtl REQUIRED)
