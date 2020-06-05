@@ -3,14 +3,15 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - eigen
+  - conda-forge::benchmark
+  - conda-forge::libblitz
+  - conda-forge::pythran
+  - eigen>=3.0
   - armadillo
   - xsimd
   - xtensor
   - xtl
-  - cmake
+  - cmake>=3.1
   - gmp
   - numpy
-  - python
-  - pip:
-    - pythran
+  - python>=3.0
